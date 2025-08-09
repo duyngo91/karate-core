@@ -1,0 +1,5 @@
+{
+  "txtUserName" : "//input[@name='username']",
+  "txtPassword" : "//input[@name='password']",
+  "btnSubmit" : "//button[@type='submit' and contains(@class, 'oxd-button--main')]"
+}
