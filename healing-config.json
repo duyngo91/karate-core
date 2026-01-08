@@ -44,11 +44,11 @@
             "dynamicPatterns": []
         }
     ],
-    "semanticEnabled": false,
+    "semanticEnabled": true,
     "minSimilarityThreshold": 0.4,
     "locatorPath": "src/test/java/web/locators",
     "visualAi": {
-        "enabled": true,
+        "enabled": false,
         "modelPath": "models/ui-detector.onnx",
         "confidenceThreshold": 0.5
     }

@@ -1,15 +1,14 @@
 package core.healing;
 
-import core.platform.web.ChromeCustom;
 import core.platform.utils.Logger;
 import java.util.*;
 
 public class SelfHealingDriver {
-    private final ChromeCustom driver;
+    private final IHealingDriver driver;
     private final SemanticLocator semanticLocator;
     private final LocatorHistory history;
 
-    public SelfHealingDriver(ChromeCustom driver) {
+    public SelfHealingDriver(IHealingDriver driver) {
         this.driver = driver;
         this.semanticLocator = new SemanticLocator(driver);
         this.history = new LocatorHistory();

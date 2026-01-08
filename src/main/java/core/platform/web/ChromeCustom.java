@@ -10,9 +10,11 @@ import com.intuit.karate.driver.Element;
 import com.intuit.karate.http.HttpClientFactory;
 import com.intuit.karate.http.Response;
 import com.intuit.karate.shell.Command;
+import core.healing.IHealingDriver;
 import core.healing.HealingInitializer;
 import core.healing.LocatorMapper;
 import core.healing.SelfHealingDriver;
+import core.healing.VisualTextMapper;
 import core.platform.common.Configuration;
 import core.platform.common.Constants;
 import core.platform.exceptions.ElementNotFoundException;
@@ -37,7 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("java:S1068")
-public class ChromeCustom extends DevToolsDriver {
+public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     private String currentDropListType = "defaultDropList";
     private String currentTableType = "defaultTable";
     public final DropListServiceManager dlManager;
@@ -51,7 +53,8 @@ public class ChromeCustom extends DevToolsDriver {
         if (path.contains("/"))
             return Arrays.stream(path.split("/")).collect(Collectors.joining(Character.toString(File.separatorChar)));
         if (path.contains("\\"))
-            return Arrays.stream(path.split("\\\\")).collect(Collectors.joining(Character.toString(File.separatorChar)));
+            return Arrays.stream(path.split("\\\\"))
+                    .collect(Collectors.joining(Character.toString(File.separatorChar)));
         return path;
     }
 
@@ -61,8 +64,10 @@ public class ChromeCustom extends DevToolsDriver {
                 + File.separatorChar + "test"
                 + File.separatorChar + "java";
 
-        if (path.contains("classpath:")) return of(path.replace("classpath:", javaPath + File.separatorChar));
-        if (path.contains("file:")) return of(path.replace("file:", javaPath + File.separatorChar));
+        if (path.contains("classpath:"))
+            return of(path.replace("classpath:", javaPath + File.separatorChar));
+        if (path.contains("file:"))
+            return of(path.replace("file:", javaPath + File.separatorChar));
         return path;
     }
 
@@ -72,7 +77,7 @@ public class ChromeCustom extends DevToolsDriver {
         super.client.setTextHandler(messageHandler.createTextHandler());
         this.dlManager = DropListServiceManager.getInstance();
         this.tableManager = TableServiceManager.getInstance();
-        
+
         // Auto-initialize healing if enabled
         HealingInitializer.autoInit();
     }
@@ -123,7 +128,6 @@ public class ChromeCustom extends DevToolsDriver {
         return webSocketUrl;
     }
 
-
     private static void validateResponse(Command command, Response res, Http http) {
         if (res.json().asList().isEmpty()) {
             if (command != null) {
@@ -159,11 +163,10 @@ public class ChromeCustom extends DevToolsDriver {
         return start(null);
     }
 
-
     public static ChromeCustom start(Map<String, Object> map, ScenarioRuntime sr) {
         return start(map, sr, "chrome_" + Thread.currentThread().getId());
     }
-    
+
     public static ChromeCustom start(Map<String, Object> map, ScenarioRuntime sr, String sessionName) {
         DriverOptions options = getDriverOptions(map, sr);
         Command command = options.startProcess();
@@ -198,7 +201,6 @@ public class ChromeCustom extends DevToolsDriver {
         String temp = String.format(func.replace("${value}", value.toString()), xpath);
         script(temp);
     }
-
 
     /*
      * Simulate a natural mouse-click
@@ -245,7 +247,8 @@ public class ChromeCustom extends DevToolsDriver {
         } catch (Exception ignored) {
             return new ArrayList<>();
         }
-        return array == null ? new ArrayList<>() : array.stream().map(o -> o.toString().trim()).collect(Collectors.toList());
+        return array == null ? new ArrayList<>()
+                : array.stream().map(o -> o.toString().trim()).collect(Collectors.toList());
     }
 
     @AutoDef
@@ -256,7 +259,8 @@ public class ChromeCustom extends DevToolsDriver {
         } catch (Exception ignored) {
             return new ArrayList<>();
         }
-        return array == null ? new ArrayList<>() : array.stream().map(o -> Boolean.parseBoolean(o.toString())).collect(Collectors.toList());
+        return array == null ? new ArrayList<>()
+                : array.stream().map(o -> Boolean.parseBoolean(o.toString())).collect(Collectors.toList());
     }
 
     @AutoDef
@@ -270,7 +274,8 @@ public class ChromeCustom extends DevToolsDriver {
     }
 
     @AutoDef
-    public boolean waitAttributeHasValue(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator, String attribute) {
+    public boolean waitAttributeHasValue(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator,
+            String attribute) {
         return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds, () -> {
             String value = attribute(locator, attribute);
             return value != null && !value.isEmpty();
@@ -278,7 +283,8 @@ public class ChromeCustom extends DevToolsDriver {
     }
 
     @AutoDef
-    public boolean waitPropertyHasValue(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator, String attribute) {
+    public boolean waitPropertyHasValue(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator,
+            String attribute) {
         return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds, () -> {
             String value = property(locator, attribute);
             return value != null && !value.isEmpty();
@@ -307,7 +313,8 @@ public class ChromeCustom extends DevToolsDriver {
 
     @AutoDef
     public boolean waitTextIs(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator, String expected) {
-        return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds, () -> !text(locator).isEmpty() && text(locator).trim().equalsIgnoreCase(expected));
+        return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds,
+                () -> !text(locator).isEmpty() && text(locator).trim().equalsIgnoreCase(expected));
     }
 
     @AutoDef
@@ -316,8 +323,10 @@ public class ChromeCustom extends DevToolsDriver {
     }
 
     @AutoDef
-    public boolean waitTextMatchRegex(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator, String regex) {
-        return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds, () -> !extract(getText(locator).trim(), regex).trim().isEmpty());
+    public boolean waitTextMatchRegex(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator,
+            String regex) {
+        return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds,
+                () -> !extract(getText(locator).trim(), regex).trim().isEmpty());
     }
 
     @AutoDef
@@ -328,7 +337,7 @@ public class ChromeCustom extends DevToolsDriver {
     @AutoDef
     public String waitAndGetText(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator) {
         Logger.debug("Waiting for text in element: %s (timeout: %dms)", locator, timeOutMilliSeconds);
-        
+
         AtomicReference<String> text = new AtomicReference<>("");
         boolean success = Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds, () -> {
             try {
@@ -342,12 +351,12 @@ public class ChromeCustom extends DevToolsDriver {
             }
             return false;
         });
-        
+
         if (!success) {
             Logger.warn("Timeout waiting for text in element: %s", locator);
             throw new ElementNotFoundException(locator);
         }
-        
+
         String result = text.get() == null ? null : text.get().trim();
         Logger.debug("Retrieved text: '%s' from element: %s", result, locator);
         return result;
@@ -371,12 +380,10 @@ public class ChromeCustom extends DevToolsDriver {
         script(temp);
     }
 
-
     @AutoDef
     public byte[] readFileAsBytes(String path) {
         return FileUtils.toBytes(new File(path));
     }
-
 
     @AutoDef
     public String getText(String xpath) {
@@ -436,12 +443,11 @@ public class ChromeCustom extends DevToolsDriver {
         return null;
     }
 
-
     public void setCheckBox(String locator, boolean expected) {
         waitFor(locator);
-        if (!checked(locator).equals(expected)) click(locator);
+        if (!checked(locator).equals(expected))
+            click(locator);
     }
-
 
     @Override
     public Element waitFor(String locator) {
@@ -471,13 +477,6 @@ public class ChromeCustom extends DevToolsDriver {
         return new WebElement(this, super.click(healed));
     }
 
-    @Override
-    public Element input(String locator, String value) {
-        String healed = tryHeal(locator);
-        return new WebElement(this, super.input(healed, value));
-    }
-
-    @Override
     public Element select(String locator, String text) {
         String healed = tryHeal(locator);
         return new WebElement(this, super.select(healed, text));
@@ -494,7 +493,7 @@ public class ChromeCustom extends DevToolsDriver {
         String healed = tryHeal(locator);
         return new WebElement(this, super.value(healed, value));
     }
-    
+
     private String tryHeal(String locator) {
         try {
             LocatorMapper mapper = LocatorMapper.getInstance();
@@ -522,7 +521,6 @@ public class ChromeCustom extends DevToolsDriver {
     public String outerHTML(String xpath) {
         return new WebElement(this, xpath).outerHTML();
     }
-
 
     @AutoDef
     public void clickAll(String locator) {
@@ -582,6 +580,7 @@ public class ChromeCustom extends DevToolsDriver {
      * Lấy dữ liệu response API của website dựa trên URL được chỉ định.
      * <p>
      * Ví dụ sử dụng:
+     * 
      * <pre>
      * {@code
      * // Lấy response cho API token
@@ -607,6 +606,7 @@ public class ChromeCustom extends DevToolsDriver {
      * @throws IllegalArgumentException khi biểu thức XPath không hợp lệ
      *                                  <p>
      *                                  Ví dụ sử dụng:
+     * 
      *                                  <pre>
      *                                                                                                    {@code
      *                                                                                                    // Cuộn đến phần tử div có class là 'target-element'
@@ -618,8 +618,10 @@ public class ChromeCustom extends DevToolsDriver {
      *                                                                                                    </pre>
      *                                  <p>
      *                                  Chú ý:
-     *                                  - Đảm bảo phần tử tồn tại trong DOM trước khi gọi hàm
-     *                                  - Hiệu ứng cuộn mượt (smooth scroll) được hỗ trợ trên hầu hết các trình duyệt hiện đại
+     *                                  - Đảm bảo phần tử tồn tại trong DOM trước
+     *                                  khi gọi hàm
+     *                                  - Hiệu ứng cuộn mượt (smooth scroll) được hỗ
+     *                                  trợ trên hầu hết các trình duyệt hiện đại
      */
     @AutoDef
     public void scrollIntoView(String xpath) {
@@ -666,70 +668,65 @@ public class ChromeCustom extends DevToolsDriver {
     @AutoDef
     public void scrollElementBy(String xpath, int x, int y) {
         Logger.debug("Scrolling element %s by x:%d, y:%d", xpath, x, y);
-        
+
         if (!exist(xpath)) {
             throw new ElementNotFoundException(xpath);
         }
-        
+
         String func = "var e = %s; e.scrollBy(${x}, ${y});";
         script(
                 String.format(
                         func.replace("${x}", String.valueOf(x))
                                 .replace("${y}", String.valueOf(y)),
-                        DriverOptions.selector(xpath)
-                )
-        );
+                        DriverOptions.selector(xpath)));
     }
+
     @AutoDef
     public int getOffsetHeight(String xpath) {
         String func = "var e = %s; e.offsetHeight;";
         return (int) script(
-                String.format(func, DriverOptions.selector(xpath))
-        );
+                String.format(func, DriverOptions.selector(xpath)));
     }
+
     @AutoDef
     public int getOffsetWidth(String xpath) {
         String func = "var e = %s; e.offsetWidth;";
         return (int) script(
-                String.format(func, DriverOptions.selector(xpath))
-        );
+                String.format(func, DriverOptions.selector(xpath)));
     }
+
     @AutoDef
     public int getScrollTop(String xpath) {
         String func = "var e = %s; e.scrollTop;";
         return (int) script(
-                String.format(func, DriverOptions.selector(xpath))
-        );
+                String.format(func, DriverOptions.selector(xpath)));
     }
+
     @AutoDef
     public int getScrollLeft(String xpath) {
         String func = "var e = %s; e.scrollLeft;";
         return (int) script(
-                String.format(func, DriverOptions.selector(xpath))
-        );
+                String.format(func, DriverOptions.selector(xpath)));
     }
+
     @AutoDef
     public int getScrollWidth(String xpath) {
         String func = "var e = %s; e.scrollWidth;";
         return (int) script(
-                String.format(func, DriverOptions.selector(xpath))
-        );
+                String.format(func, DriverOptions.selector(xpath)));
     }
 
     @AutoDef
     public int getScrollHeight(String xpath) {
         String func = "var e = %s; e.scrollHeight;";
         return (int) script(
-                String.format(func, DriverOptions.selector(xpath))
-        );
+                String.format(func, DriverOptions.selector(xpath)));
     }
-
 
     @AutoDef
     public boolean isScrollToEndOfTop(String xpath) {
         return getScrollTop(xpath) <= 0;
     }
-
 
     @AutoDef
     public boolean isScrollToEndOfBottom(String xpath) {
@@ -740,17 +737,16 @@ public class ChromeCustom extends DevToolsDriver {
     public boolean isScrollToEndOfRight(String xpath) {
         return getOffsetWidth(xpath) + getScrollLeft(xpath) >= getScrollWidth(xpath);
     }
+
     @AutoDef
     public boolean isScrollToEndOfLeft(String xpath) {
         return getScrollLeft(xpath) <= 0;
     }
 
-
     @AutoDef
     public void scrollToBottomInfoElement(String xpath) {
         scrollElementBy(xpath, MAX_POINT, MIN_POINT);
     }
-
 
     @AutoDef
     public void scrollToLeftInfoElement(String xpath) {
@@ -816,7 +812,6 @@ public class ChromeCustom extends DevToolsDriver {
         return Double.parseDouble(rect.get("y").toString()) + Double.parseDouble(rect.get("height").toString()) / 2;
     }
 
-
     @AutoDef
     public void uploadFileByDragEvent(String xpath, String filePath) {
         int startX = 0;
@@ -831,12 +826,12 @@ public class ChromeCustom extends DevToolsDriver {
         script(
                 "var cursor = document.createElement('div');" +
                         "cursor.id = 'drag-cursor';" +
-                        "cursor.style.cssText = 'position:fixed;padding:8px;background:rgba(255,255,255,0.9);border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:9999;pointer-events:none;font-family:Arial,sans-serif;font-size:12px;';" +
+                        "cursor.style.cssText = 'position:fixed;padding:8px;background:rgba(255,255,255,0.9);border:1px solid #ccc;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.3);z-index:9999;pointer-events:none;font-family:Arial,sans-serif;font-size:12px;';"
+                        +
                         "cursor.innerHTML = '📄 " + file.getName() + "';" +
                         "cursor.style.left = '" + startX + "px';" +
                         "cursor.style.top = '" + startY + "px';" +
-                        "document.body.appendChild(cursor);"
-        );
+                        "document.body.appendChild(cursor);");
 
         // Animate cursor movement
         int steps = 20;
@@ -852,8 +847,8 @@ public class ChromeCustom extends DevToolsDriver {
                             "  cursor.style.left = '%spx';" +
                             "  cursor.style.top = '%spx';" +
                             "  cursor.style.transform = 'rotate(' + (%d * 2) + 'deg)';" +
-                            "}", eCursor, currentX, currentY, i
-            ));
+                            "}",
+                    eCursor, currentX, currentY, i));
 
             delay(50);
         }
@@ -861,8 +856,7 @@ public class ChromeCustom extends DevToolsDriver {
         // Highlight target on hover
         script(String.format(
                 "var e = %s; e.style.border = '3px dashed #007cba';",
-                DriverOptions.selector(xpath)
-        ));
+                DriverOptions.selector(xpath)));
 
         delay(300);
 
@@ -879,8 +873,7 @@ public class ChromeCustom extends DevToolsDriver {
                         "  el.style.border = '2px solid #4caf50';" +
                         "  el.style.backgroundColor = '#e8f5e8';" +
                         "})();",
-                DriverOptions.selector(xpath), file.getName(), mimeType
-        );
+                DriverOptions.selector(xpath), file.getName(), mimeType);
         script(dropScript);
 
         // Fade out and remove cursor
@@ -892,16 +885,16 @@ public class ChromeCustom extends DevToolsDriver {
     @AutoDef
     public void uploadFile(String inputXpath, String filePath) {
         Logger.info("Uploading file %s to element %s", filePath, inputXpath);
-        
+
         if (!exist(inputXpath)) {
             throw new ElementNotFoundException(inputXpath);
         }
-        
+
         File file = new File(getKaratePath(filePath));
         if (!file.exists()) {
             throw new RuntimeException("File not found: " + filePath);
         }
-        
+
         String mimeType = getMimeType(filePath);
 
         String uploadScript = String.format(
@@ -913,8 +906,7 @@ public class ChromeCustom extends DevToolsDriver {
                         "  input.files = dt.files;" +
                         "  input.dispatchEvent(new Event('change', {bubbles: true}));" +
                         "})();",
-                DriverOptions.selector(inputXpath), file.getName(), mimeType
-        );
+                DriverOptions.selector(inputXpath), file.getName(), mimeType);
 
         script(uploadScript);
         Logger.debug("File upload completed for: %s", filePath);
@@ -936,6 +928,11 @@ public class ChromeCustom extends DevToolsDriver {
     }
 
     @AutoDef
+    public List<Map<String, Object>> visualTextMap() {
+        return new VisualTextMapper(this).getVisualTextMap();
+    }
+
+    @AutoDef
     public String getOptimizedPageSource() {
         try {
             String jsScript = FileUtils.toString(getClass().getResourceAsStream("/get-optimized-page-source.js"));
@@ -946,4 +943,8 @@ public class ChromeCustom extends DevToolsDriver {
         }
     }
 
+    @Override
+    public String getType() {
+        return "WEB";
+    }
 }

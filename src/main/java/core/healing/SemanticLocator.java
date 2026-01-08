@@ -1,21 +1,20 @@
 package core.healing;
 
+import com.intuit.karate.driver.Driver;
 import core.platform.web.ChromeCustom;
 import core.platform.utils.Logger;
 import org.apache.commons.text.similarity.*;
 import java.util.*;
 
 public class SemanticLocator {
-    private final ChromeCustom driver;
+    private final IHealingDriver driver;
     private final JaroWinklerSimilarity jaroWinkler = new JaroWinklerSimilarity();
     private final LevenshteinDistance levenshtein = new LevenshteinDistance();
     private final JaccardSimilarity jaccard = new JaccardSimilarity();
     private static final HealingConfig config = HealingConfig.getInstance();
-    private final VisualBridge visualBridge;
 
-    public SemanticLocator(ChromeCustom driver) {
+    public SemanticLocator(IHealingDriver driver) {
         this.driver = driver;
-        this.visualBridge = new VisualBridge(driver);
     }
 
     private double calculateBestSimilarity(String s1, String s2) {
@@ -53,10 +52,6 @@ public class SemanticLocator {
         String semanticLocator = findBySemanticHtml(cleanIntent);
         if (semanticLocator != null)
             return semanticLocator;
-
-        String visualLocator = findByVisualAI(cleanIntent);
-        if (visualLocator != null)
-            return visualLocator;
 
         String fuzzyLocator = findByFuzzyText(cleanIntent);
         if (fuzzyLocator != null)
@@ -150,49 +145,33 @@ public class SemanticLocator {
         return null;
     }
 
-    private String findByVisualAI(String intent) {
-        if (!config.visualAi.enabled)
-            return null;
-
-        Logger.info("Attempting Visual AI healing for intent: %s", intent);
-        List<ElementInfo> visualElements = visualBridge.findElementsVisually(this);
-
-        List<ElementCandidate> candidates = new ArrayList<>();
-        for (ElementInfo element : visualElements) {
-            double score = calculateElementScore(element, intent);
-            // Visual AI should provide a boost if the label matches the intent context
-            candidates.add(new ElementCandidate(element.locator, score, element.description));
-        }
-
-        candidates.sort((a, b) -> Double.compare(b.score, a.score));
-        if (!candidates.isEmpty() && candidates.get(0).score >= config.minSimilarityThreshold) {
-            Logger.info("Visual AI found a high-confidence match!");
-            return candidates.get(0).locator;
-        }
-
-        return null;
-    }
 
     private String findByFuzzyText(String intent) {
+        Logger.debug("Attempting Fuzzy Semantic healing for intent: %s", intent);
         List<ElementCandidate> candidates = new ArrayList<>();
 
-        // Get page source and parse DOM intelligently
-        String pageSource = driver.getPageSource();
-        List<ElementInfo> elements = parseInteractiveElements(pageSource);
+        // Get elements with coordinates and attributes using JS bridge
+        List<ElementInfo> elements = getElementsWithDetailedInfo();
+        List<Map<String, Object>> textMap = driver.visualTextMap();
 
         for (ElementInfo element : elements) {
             double score = calculateElementScore(element, intent);
+
+            // Proximity Bonus: If this element is near a text label that matches the intent
+            double proximityBonus = calculateProximityBonus(element, textMap, intent);
+            score += proximityBonus;
+
             candidates.add(new ElementCandidate(element.locator, score, element.description));
         }
 
-        // Sort by score and try top 2 candidates
+        // Sort by score and try top candidates
         candidates.sort((a, b) -> Double.compare(b.score, a.score));
 
-        // Try best 2 candidates
-        for (int i = 0; i < Math.min(2, candidates.size()); i++) {
+        for (int i = 0; i < Math.min(3, candidates.size()); i++) {
             ElementCandidate candidate = candidates.get(i);
             if (candidate.score >= config.minSimilarityThreshold && driver.exist(candidate.locator)) {
-                Logger.debug("Fuzzy match #%d: %s (score: %.2f)", i + 1, candidate.description, candidate.score);
+                Logger.info("Success! Match found via Fuzzy/Proximity: %s (score: %.2f)", candidate.description,
+                        candidate.score);
                 return candidate.locator;
             }
         }
@@ -200,31 +179,81 @@ public class SemanticLocator {
         return null;
     }
 
-    private List<ElementInfo> parseInteractiveElements(String html) {
-        List<ElementInfo> elements = new ArrayList<>();
+    private List<ElementInfo> getElementsWithDetailedInfo() {
+        Logger.debug("Using JS bridge to extract interactive elements...");
+        String js = "(function() {" +
+                "  var results = [];" +
+                "  var tags = ['button', 'a', 'input', 'select', 'textarea'];" +
+                "  var elements = document.querySelectorAll(tags.join(','));" +
+                "  for (var i = 0; i < elements.length; i++) {" +
+                "    var el = elements[i];" +
+                "    if (el.offsetWidth > 0 && el.offsetHeight > 0) {" +
+                "      var rect = el.getBoundingClientRect();" +
+                "      var attrs = {};" +
+                "      for (var j = 0; j < el.attributes.length; j++) {" +
+                "        attrs[el.attributes[j].name] = el.attributes[j].value;" +
+                "      }" +
+                "      results.push({" +
+                "        tagName: el.tagName.toLowerCase()," +
+                "        text: el.innerText || el.value || ''," +
+                "        attributes: attrs," +
+                "        x: rect.left, y: rect.top, w: rect.width, h: rect.height" +
+                "      });" +
+                "    }" +
+                "  }" +
+                "  return results;" +
+                "})();";
 
-        // Parse buttons, links, inputs with attributes
-        String[] patterns = {
-                "<button[^>]*>([^<]*)</button>",
-                "<a[^>]*>([^<]*)</a>",
-                "<input[^>]*>",
-                "<select[^>]*>",
-                "<textarea[^>]*>"
-        };
+        try {
+            List<Map<String, Object>> raw = (List<Map<String, Object>>) driver.script(js);
+            List<ElementInfo> results = new ArrayList<>();
+            for (Map<String, Object> map : raw) {
+                ElementInfo info = new ElementInfo();
+                info.tagName = (String) map.get("tagName");
+                info.text = (String) map.get("text");
+                info.attributes = (Map<String, String>) map.get("attributes");
+                info.x = ((Number) map.get("x")).intValue();
+                info.y = ((Number) map.get("y")).intValue();
+                info.width = ((Number) map.get("w")).intValue();
+                info.height = ((Number) map.get("h")).intValue();
+                info.locator = buildLocator(info);
+                info.description = buildDescription(info);
+                results.add(info);
+            }
+            return results;
+        } catch (Exception e) {
+            Logger.error("Failed to extract elements via JS: %s", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
 
-        for (String pattern : patterns) {
-            java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern,
-                    java.util.regex.Pattern.CASE_INSENSITIVE);
-            java.util.regex.Matcher m = p.matcher(html);
+    private double calculateProximityBonus(ElementInfo element, List<Map<String, Object>> textMap, String intent) {
+        double maxBonus = 0;
+        String normalizedIntent = normalizeIdentifier(intent);
 
-            while (m.find()) {
-                ElementInfo info = extractElementInfo(m.group());
-                if (info != null)
-                    elements.add(info);
+        for (Map<String, Object> textLabel : textMap) {
+            String labelText = (String) textLabel.get("text");
+            if (labelText == null || labelText.length() < 2)
+                continue;
+
+            double similarity = calculateBestSimilarity(normalizedIntent, normalizeIdentifier(labelText));
+            if (similarity > 0.7) {
+                // Label is relevant. Check distance.
+                int lx = ((Number) textLabel.get("x")).intValue();
+                int ly = ((Number) textLabel.get("y")).intValue();
+
+                // Distance from label to element center
+                double dist = Math.sqrt(Math.pow(lx - (element.x + element.width / 2.0), 2) +
+                        Math.pow(ly - (element.y + element.height / 2.0), 2));
+
+                // Bonus decays with distance. Max 200px.
+                if (dist < 200) {
+                    double bonus = (1.0 - (dist / 200.0)) * 0.3 * similarity;
+                    maxBonus = Math.max(maxBonus, bonus);
+                }
             }
         }
-
-        return elements;
+        return maxBonus;
     }
 
     public ElementInfo extractElementInfo(String elementHtml) {
@@ -374,6 +403,7 @@ public class SemanticLocator {
         String text, name; // name is still used in combined logic
         Map<String, String> attributes = new HashMap<>();
         String locator, description;
+        int x, y, width, height;
     }
 
     private static class ElementCandidate {
