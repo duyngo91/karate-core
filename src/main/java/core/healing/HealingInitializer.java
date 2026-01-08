@@ -7,12 +7,16 @@ public class HealingInitializer {
     private static boolean initialized = false;
 
     public static void autoInit() {
-        String autoHealing = System.getProperty("auto.healing");
-        String locatorPath = System.getProperty("locator.path");
+        HealingConfig config = HealingConfig.getInstance();
 
-        if ("true".equalsIgnoreCase(autoHealing) && locatorPath != null) {
-            Logger.info("Enable auto-healing");
-            loadLocatorsFromPath(locatorPath);
+        if (config.isEnabled()) {
+            Logger.info("Self-healing system enabled");
+            String path = config.getLocatorPath();
+
+            // Note: If path is a file (history), it might not be what loadLocatorsFromPath
+            // expects (dir)
+            // But we follow the user's requested logic for initialization
+            loadLocatorsFromPath(path);
 
             // Register shutdown hook for monitoring report
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {

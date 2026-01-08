@@ -11,9 +11,11 @@ public class SemanticLocator {
     private final LevenshteinDistance levenshtein = new LevenshteinDistance();
     private final JaccardSimilarity jaccard = new JaccardSimilarity();
     private static final HealingConfig config = HealingConfig.getInstance();
+    private final VisualBridge visualBridge;
 
     public SemanticLocator(ChromeCustom driver) {
         this.driver = driver;
+        this.visualBridge = new VisualBridge(driver);
     }
 
     private double calculateBestSimilarity(String s1, String s2) {
@@ -51,6 +53,10 @@ public class SemanticLocator {
         String semanticLocator = findBySemanticHtml(cleanIntent);
         if (semanticLocator != null)
             return semanticLocator;
+
+        String visualLocator = findByVisualAI(cleanIntent);
+        if (visualLocator != null)
+            return visualLocator;
 
         String fuzzyLocator = findByFuzzyText(cleanIntent);
         if (fuzzyLocator != null)
@@ -144,6 +150,29 @@ public class SemanticLocator {
         return null;
     }
 
+    private String findByVisualAI(String intent) {
+        if (!config.visualAi.enabled)
+            return null;
+
+        Logger.info("Attempting Visual AI healing for intent: %s", intent);
+        List<ElementInfo> visualElements = visualBridge.findElementsVisually(this);
+
+        List<ElementCandidate> candidates = new ArrayList<>();
+        for (ElementInfo element : visualElements) {
+            double score = calculateElementScore(element, intent);
+            // Visual AI should provide a boost if the label matches the intent context
+            candidates.add(new ElementCandidate(element.locator, score, element.description));
+        }
+
+        candidates.sort((a, b) -> Double.compare(b.score, a.score));
+        if (!candidates.isEmpty() && candidates.get(0).score >= config.minSimilarityThreshold) {
+            Logger.info("Visual AI found a high-confidence match!");
+            return candidates.get(0).locator;
+        }
+
+        return null;
+    }
+
     private String findByFuzzyText(String intent) {
         List<ElementCandidate> candidates = new ArrayList<>();
 
@@ -198,7 +227,7 @@ public class SemanticLocator {
         return elements;
     }
 
-    private ElementInfo extractElementInfo(String elementHtml) {
+    public ElementInfo extractElementInfo(String elementHtml) {
         ElementInfo info = new ElementInfo();
 
         // Extract tagName
@@ -340,7 +369,7 @@ public class SemanticLocator {
                 .replaceAll("[^a-z0-9]", "");
     }
 
-    private static class ElementInfo {
+    public static class ElementInfo {
         String tagName;
         String text, name; // name is still used in combined logic
         Map<String, String> attributes = new HashMap<>();

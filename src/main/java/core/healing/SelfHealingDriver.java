@@ -104,7 +104,6 @@ public class SelfHealingDriver {
     }
 
     private boolean isAutoHealingEnabled() {
-        String property = System.getProperty("auto.healing");
-        return "true".equalsIgnoreCase(property);
+        return HealingConfig.getInstance().isEnabled();
     }
 }

@@ -14,8 +14,6 @@ class RunTest {
     public void run() {
 
         String path = System.getProperty("karate.path", "src/test/java/web/features");
-        System.setProperty("auto.healing", "true");
-        System.setProperty("locator.path", "src/test/java/web/locators");
         Results results = Runner
                 .path(path)
                 .tags("@test")

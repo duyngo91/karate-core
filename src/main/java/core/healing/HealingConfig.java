@@ -13,11 +13,29 @@ public class HealingConfig {
     private static HealingConfig instance;
     private static final String CONFIG_PATH = "healing-config.json";
 
+    @JsonProperty("enabled")
+    public boolean enabled = true;
+
     @JsonProperty("attributes")
     public List<AttributeConfig> attributes = new ArrayList<>();
 
+    @JsonProperty("semanticEnabled")
+    public boolean semanticEnabled = true;
+
     @JsonProperty("minSimilarityThreshold")
     public double minSimilarityThreshold = 0.4;
+
+    @JsonProperty("locatorPath")
+    public String locatorPath = "src/test/java/web/locators";
+
+    @JsonProperty("visualAi")
+    public VisualAiConfig visualAi = new VisualAiConfig();
+
+    public static class VisualAiConfig {
+        public boolean enabled = true;
+        public String modelPath = "models/ui-detector.onnx";
+        public double confidenceThreshold = 0.5;
+    }
 
     public static class AttributeConfig {
         public String name;
@@ -31,6 +49,26 @@ public class HealingConfig {
             instance = loadConfig();
         }
         return instance;
+    }
+
+    public boolean isEnabled() {
+        String prop = System.getProperty("auto.healing");
+        return prop != null ? "true".equalsIgnoreCase(prop) : enabled;
+    }
+
+    public boolean isSemanticEnabled() {
+        String prop = System.getProperty("healing.semantic");
+        return prop != null ? "true".equalsIgnoreCase(prop) : semanticEnabled;
+    }
+
+    public boolean isVisualEnabled() {
+        String prop = System.getProperty("healing.visual");
+        return prop != null ? "true".equalsIgnoreCase(prop) : visualAi.enabled;
+    }
+
+    public String getLocatorPath() {
+        String prop = System.getProperty("locator.path");
+        return prop != null ? prop : locatorPath;
     }
 
     private static HealingConfig loadConfig() {

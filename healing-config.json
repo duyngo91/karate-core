@@ -1,47 +1,55 @@
 {
-  "attributes": [
-    {
-      "name": "data-testid",
-      "weight": 0.4,
-      "priority": 1,
-      "dynamicPatterns": []
-    },
-    {
-      "name": "translate",
-      "weight": 0.35,
-      "priority": 2,
-      "dynamicPatterns": []
-    },
-    {
-      "name": "id",
-      "weight": 0.3,
-      "priority": 3,
-      "dynamicPatterns": [
-        "^\\d+$",
-        ".*[_-]\\d{8,}$",
-        "^ember",
-        "^v-",
-        "^j_idt"
-      ]
-    },
-    {
-      "name": "name",
-      "weight": 0.25,
-      "priority": 4,
-      "dynamicPatterns": []
-    },
-    {
-      "name": "aria-label",
-      "weight": 0.2,
-      "priority": 5,
-      "dynamicPatterns": []
-    },
-    {
-      "name": "placeholder",
-      "weight": 0.15,
-      "priority": 6,
-      "dynamicPatterns": []
+    "enabled": true,
+    "attributes": [
+        {
+            "name": "data-testid",
+            "weight": 0.4,
+            "priority": 1,
+            "dynamicPatterns": []
+        },
+        {
+            "name": "translate",
+            "weight": 0.35,
+            "priority": 2,
+            "dynamicPatterns": []
+        },
+        {
+            "name": "id",
+            "weight": 0.3,
+            "priority": 3,
+            "dynamicPatterns": [
+                "^\\d+$",
+                ".*[_-]\\d{8,}$",
+                "^ember",
+                "^v-",
+                "^j_idt"
+            ]
+        },
+        {
+            "name": "name",
+            "weight": 0.25,
+            "priority": 4,
+            "dynamicPatterns": []
+        },
+        {
+            "name": "aria-label",
+            "weight": 0.2,
+            "priority": 5,
+            "dynamicPatterns": []
+        },
+        {
+            "name": "placeholder",
+            "weight": 0.15,
+            "priority": 6,
+            "dynamicPatterns": []
+        }
+    ],
+    "semanticEnabled": false,
+    "minSimilarityThreshold": 0.4,
+    "locatorPath": "src/test/java/web/locators",
+    "visualAi": {
+        "enabled": true,
+        "modelPath": "models/ui-detector.onnx",
+        "confidenceThreshold": 0.5
     }
-  ],
-  "minSimilarityThreshold": 0.4
 }
