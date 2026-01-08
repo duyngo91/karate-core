@@ -6,3 +6,4 @@ target/
 .vscode/
 
 /locator-history.json
+/dependency-reduced-pom.xml
