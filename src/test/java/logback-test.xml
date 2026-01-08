@@ -15,10 +15,11 @@
     </appender>    
    
     <logger name="com.intuit" level="DEBUG"/>
-   
+    <logger name="core.platform" level="DEBUG"/>
+
     <root level="info">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
     </root>
-  
+
 </configuration>

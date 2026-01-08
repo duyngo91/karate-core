@@ -1,0 +1,556 @@
+{
+  "init_browser": {
+    "type": "object",
+    "properties": {
+      "headless": {
+        "type": "boolean",
+        "description": "Run browser in headless mode"
+      },
+      "reuse": {
+        "type": "boolean",
+        "description": "Reuse existing driver if available"
+      }
+    },
+    "additionalProperties": false
+  },
+  "navigate": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "URL to navigate to"
+      }
+    },
+    "required": ["url"],
+    "additionalProperties": false
+  },
+  "click": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator (CSS selector, XPath, etc.)"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "mouse_click": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator for natural mouse click simulation"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "input": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      },
+      "text": {
+        "type": "string",
+        "description": "Text to input"
+      }
+    },
+    "required": ["locator", "text"],
+    "additionalProperties": false
+  },
+  "input_value": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      },
+      "value": {
+        "type": "string",
+        "description": "Value to input with event dispatch"
+      }
+    },
+    "required": ["locator", "value"],
+    "additionalProperties": false
+  },
+  "clear": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "get_text": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "wait_exist": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      },
+      "retryCount": {
+        "type": "number",
+        "description": "Number of retry attempts (default: null)"
+      },
+      "retryInterval": {
+        "type": "number",
+        "description": "Interval between retries in milliseconds (default: null)"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "droplist_select": {
+    "type": "object",
+    "description": "PRIORITY: Use for all dropdown/select operations instead of click() or execute_script()",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      },
+      "value": {
+        "type": "string",
+        "description": "Option text to select"
+      }
+    },
+    "required": ["locator", "value"],
+    "additionalProperties": false
+  },
+  "droplist_get_options": {
+    "type": "object",
+    "description": "PRIORITY: Use to get dropdown options instead of execute_script()",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "table_get_data": {
+    "type": "object",
+    "properties": {
+      "header_locator": {
+        "type": "string",
+        "description": "Table header xpath locator"
+      },
+      "row_locator": {
+        "type": "string",
+        "description": "Table row locator (optional)"
+      }
+    },
+    "required": ["header_locator"],
+    "additionalProperties": false
+  },
+  "checkbox_set": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Checkbox element locator"
+      },
+      "checked": {
+        "type": "boolean",
+        "description": "Desired checked state"
+      }
+    },
+    "required": ["locator", "checked"],
+    "additionalProperties": false
+  },
+  "switch_tab": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Tab title to switch to"
+      }
+    },
+    "required": ["title"],
+    "additionalProperties": false
+  },
+  "take_screenshot": {
+    "type": "object",
+    "properties": {
+      "file_path": {
+        "type": "string",
+        "description": "Path to save screenshot"
+      }
+    },
+    "additionalProperties": false
+  },
+  "scroll_into_view": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "upload_file": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "File input element locator"
+      },
+      "file_path": {
+        "type": "string",
+        "description": "Path to file to upload"
+      }
+    },
+    "required": ["locator", "file_path"],
+    "additionalProperties": false
+  },
+  "get_attribute": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      },
+      "attribute": {
+        "type": "string",
+        "description": "Attribute name"
+      }
+    },
+    "required": ["locator", "attribute"],
+    "additionalProperties": false
+  },
+  "execute_script": {
+    "type": "object",
+    "properties": {
+      "script": {
+        "type": "string",
+        "description": "JavaScript code to execute"
+      }
+    },
+    "required": ["script"],
+    "additionalProperties": false
+  },
+  "select_option": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Select element locator"
+      },
+      "option": {
+        "type": "string",
+        "description": "Option text or value"
+      }
+    },
+    "required": ["locator", "option"],
+    "additionalProperties": false
+  },
+  "get_page_title": {
+    "type": "object",
+    "additionalProperties": false
+  },
+  "get_current_url": {
+    "type": "object",
+    "additionalProperties": false
+  },
+  "get_page_source": {
+    "type": "object",
+    "description": "Get optimized page source as JSON summary including forms, tables, buttons, inputs, selects, and links. Returns structured data under 100KB limit instead of full HTML. Use this to analyze UI structure and identify elements for automation.",
+    "additionalProperties": false
+  },
+  "droplist_select_contains": {
+    "type": "object",
+    "description": "PRIORITY: Use for partial text dropdown selection instead of click()",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      },
+      "value": {
+        "type": "string",
+        "description": "Partial option text to select"
+      }
+    },
+    "required": ["locator", "value"],
+    "additionalProperties": false
+  },
+  "droplist_search_select": {
+    "type": "object",
+    "description": "PRIORITY: Use for searchable dropdown operations",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "search_field": {
+        "type": "string",
+        "description": "Search field locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      },
+      "search_value": {
+        "type": "string",
+        "description": "Value to search for"
+      },
+      "select_value": {
+        "type": "string",
+        "description": "Value to select"
+      }
+    },
+    "required": ["locator", "search_field", "search_value", "select_value"],
+    "additionalProperties": false
+  },
+  "droplist_get_selected": {
+    "type": "object",
+    "description": "PRIORITY: Use to get selected dropdown values",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "switch_tab_contains": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Partial tab title to search for"
+      }
+    },
+    "required": ["title"],
+    "additionalProperties": false
+  },
+  "open_new_tab": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "URL to open in new tab"
+      }
+    },
+    "required": ["url"],
+    "additionalProperties": false
+  },
+  "close_tab": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Tab title to close"
+      }
+    },
+    "required": ["title"],
+    "additionalProperties": false
+  },
+  "get_tabs": {
+    "type": "object",
+    "additionalProperties": false
+  },
+  "checkbox_is_checked": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Checkbox element locator"
+      }
+    },
+    "required": ["locator"],
+    "additionalProperties": false
+  },
+  "table_get_headers": {
+    "type": "object",
+    "properties": {
+      "header_locator": {
+        "type": "string",
+        "description": "Table header xpath locator"
+      }
+    },
+    "required": ["header_locator"],
+    "additionalProperties": false
+  },
+  "table_get_row_data": {
+    "type": "object",
+    "properties": {
+      "header_locator": {
+        "type": "string",
+        "description": "Table header xpath locator"
+      },
+      "row_locator": {
+        "type": "string",
+        "description": "Table row xpath locator (optional)"
+      },
+      "row_index": {
+        "type": "number",
+        "description": "Row index (0-based)"
+      }
+    },
+    "required": ["header_locator", "row_index"],
+    "additionalProperties": false
+  },
+  "table_count_rows": {
+    "type": "object",
+    "properties": {
+      "header_locator": {
+        "type": "string",
+        "description": "Table header xpath locator"
+      },
+      "row_locator": {
+        "type": "string",
+        "description": "Table row xpath locator (optional)"
+      }
+    },
+    "required": ["header_locator"],
+    "additionalProperties": false
+  },
+  "table_is_empty": {
+    "type": "object",
+    "properties": {
+      "header_locator": {
+        "type": "string",
+        "description": "Table header xpath locator"
+      },
+      "row_locator": {
+        "type": "string",
+        "description": "Table row xpath locator (optional)"
+      }
+    },
+    "required": ["header_locator"],
+    "additionalProperties": false
+  },
+  "start_recording": {
+    "type": "object",
+    "description": "Start recording browser interactions. All subsequent MCP tool calls will be automatically recorded and converted to Karate syntax.",
+    "additionalProperties": false
+  },
+  "stop_recording": {
+    "type": "object",
+    "description": "Stop recording and return the generated Karate .feature file content as a string. The output includes Feature, Background, and Scenario with all recorded steps in Karate DSL syntax.",
+    "additionalProperties": false
+  },
+  "set_function_name": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "Function name for page object template generation"
+      }
+    },
+    "required": ["name"],
+    "additionalProperties": false
+  },
+  "get_driver_status": {
+    "type": "object",
+    "additionalProperties": false
+  },
+  "close": {
+    "type": "object",
+    "additionalProperties": false
+  },
+  "get_response_api": {
+    "type": "object",
+    "description": "Get API response data. NOTE: Must call enable_network_events first",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "API URL pattern to match"
+      }
+    },
+    "required": ["url"],
+    "additionalProperties": false
+  },
+  "get_request_api": {
+    "type": "object",
+    "description": "Get API request data. NOTE: Must call enable_network_events first",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "API URL pattern to match"
+      }
+    },
+    "required": ["url"],
+    "additionalProperties": false
+  },
+  "enable_network_events": {
+    "type": "object",
+    "additionalProperties": false
+  },
+  "generate_test_from_nl": {
+    "type": "object",
+    "description": "Generate Karate test script from natural language description",
+    "properties": {
+      "description": {
+        "type": "string",
+        "description": "Natural language description of the test scenario. Example: 'Navigate to https://example.com, click Login button, enter username admin, enter password 123456, click Submit, verify Welcome message'"
+      }
+    },
+    "required": ["description"],
+    "additionalProperties": false
+  },
+  "parse_test_scenario": {
+    "type": "object",
+    "description": "Parse natural language test scenario into structured format",
+    "properties": {
+      "description": {
+        "type": "string",
+        "description": "Natural language test scenario to parse"
+      }
+    },
+    "required": ["description"],
+    "additionalProperties": false
+  },
+  "heal_locator": {
+    "type": "object",
+    "description": "Self-heal broken locator using semantic (ARIA, role, test-id) and learning-based strategies. Automatically finds working alternative locators and learns from history.",
+    "properties": {
+      "element_id": {
+        "type": "string",
+        "description": "Unique identifier for the element (e.g., 'loginButton', 'usernameField'). Used for learning and history tracking."
+      },
+      "locator": {
+        "type": "string",
+        "description": "Original locator that may be broken (XPath, CSS selector, etc.)"
+      }
+    },
+    "required": ["element_id", "locator"],
+    "additionalProperties": false
+  }
+}

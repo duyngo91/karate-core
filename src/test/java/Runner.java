@@ -1,5 +1,5 @@
 import com.intuit.karate.Results;
-import com.core.platform.web.factory.DriverFactory;
+import core.platform.web.factory.DriverFactory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
