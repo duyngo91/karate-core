@@ -10,7 +10,7 @@ public class SemanticLocator {
     private final JaroWinklerSimilarity jaroWinkler = new JaroWinklerSimilarity();
     private final LevenshteinDistance levenshtein = new LevenshteinDistance();
     private final JaccardSimilarity jaccard = new JaccardSimilarity();
-    private static final double SIMILARITY_THRESHOLD = 0.4; // 10% similarity
+    private static final HealingConfig config = HealingConfig.getInstance();
 
     public SemanticLocator(ChromeCustom driver) {
         this.driver = driver;
@@ -162,7 +162,7 @@ public class SemanticLocator {
         // Try best 2 candidates
         for (int i = 0; i < Math.min(2, candidates.size()); i++) {
             ElementCandidate candidate = candidates.get(i);
-            if (candidate.score >= SIMILARITY_THRESHOLD && driver.exist(candidate.locator)) {
+            if (candidate.score >= config.minSimilarityThreshold && driver.exist(candidate.locator)) {
                 Logger.debug("Fuzzy match #%d: %s (score: %.2f)", i + 1, candidate.description, candidate.score);
                 return candidate.locator;
             }
@@ -213,13 +213,16 @@ public class SemanticLocator {
             info.text = textMatcher.group(1).trim();
         }
 
-        // Extract key attributes
-        info.id = extractAttribute(elementHtml, "id");
-        info.name = extractAttribute(elementHtml, "name");
-        info.className = extractAttribute(elementHtml, "class");
-        info.ariaLabel = extractAttribute(elementHtml, "aria-label");
-        info.placeholder = extractAttribute(elementHtml, "placeholder");
-        info.testId = extractAttribute(elementHtml, "data-testid");
+        // Extract attributes dynamically based on config
+        for (HealingConfig.AttributeConfig attr : config.attributes) {
+            String value = extractAttribute(elementHtml, attr.name);
+            if (value != null) {
+                info.attributes.put(attr.name, value);
+                // Also map to legacy fields for backward compatibility in internal methods
+                if ("name".equalsIgnoreCase(attr.name))
+                    info.name = value;
+            }
+        }
 
         // Build optimal locator
         info.locator = buildLocator(info);
@@ -237,36 +240,31 @@ public class SemanticLocator {
 
     private String buildLocator(ElementInfo info) {
         String tag = info.tagName != null ? info.tagName : "*";
-        boolean idIsDynamic = isDynamicId(info.id);
 
-        // Priority 1: Static ID
-        if (info.id != null && !info.id.isEmpty() && !idIsDynamic) {
-            return "//" + tag + "[@id='" + info.id + "']";
+        // Sort attributes by priority from config
+        List<HealingConfig.AttributeConfig> sortedAttrs = new ArrayList<>(config.attributes);
+        sortedAttrs.sort(Comparator.comparingInt(a -> a.priority));
+
+        for (HealingConfig.AttributeConfig attr : sortedAttrs) {
+            String value = info.attributes.get(attr.name);
+            if (value != null && !value.isEmpty()) {
+                if (isDynamic(attr, value))
+                    continue; // Skip high-priority dynamic values if possible
+                return String.format("//%s[@%s='%s']", tag, attr.name, value);
+            }
         }
 
-        // Priority 2: Test ID (Highly robust)
-        if (info.testId != null && !info.testId.isEmpty()) {
-            return "//" + tag + "[@data-testid='" + info.testId + "']";
-        }
-
-        // Priority 3: Combined Name and Text (Increased uniqueness)
+        // Fallback Priority: Combined Name and Text (Increased uniqueness)
         if (info.name != null && !info.name.isEmpty() && info.text != null && !info.text.isEmpty()) {
             return "//" + tag + "[@name='" + info.name + "' and contains(., '" + info.text + "')]";
         }
 
-        // Priority 4: Name attribute
-        if (info.name != null && !info.name.isEmpty()) {
-            return "//" + tag + "[@name='" + info.name + "']";
-        }
-
-        // Priority 5: Text content
-        if (info.text != null && !info.text.isEmpty()) {
-            return "//" + tag + "[contains(text(), '" + info.text + "')]";
-        }
-
-        // Priority 6: Dynamic ID (Last resort)
-        if (info.id != null && !info.id.isEmpty()) {
-            return "//" + tag + "[@id='" + info.id + "']";
+        // Absolute last resort: Any attribute even if dynamic
+        for (HealingConfig.AttributeConfig attr : sortedAttrs) {
+            String value = info.attributes.get(attr.name);
+            if (value != null && !value.isEmpty()) {
+                return String.format("//%s[@%s='%s']", tag, attr.name, value);
+            }
         }
 
         return null;
@@ -276,91 +274,57 @@ public class SemanticLocator {
         StringBuilder desc = new StringBuilder();
         if (info.text != null)
             desc.append("text:").append(info.text).append(" ");
-        if (info.ariaLabel != null)
-            desc.append("aria:").append(info.ariaLabel).append(" ");
-        if (info.placeholder != null)
-            desc.append("placeholder:").append(info.placeholder);
+
+        info.attributes.forEach((k, v) -> {
+            desc.append(k).append(":").append(v).append(" ");
+        });
+
         return desc.toString().trim();
     }
 
     private double calculateElementScore(ElementInfo element, String intent) {
         double score = 0;
-
-        // Extract last key from intent (login.inpUserName -> inpUserName)
-        String cleanIntent = extractLastKey(intent);
-        String intentLower = cleanIntent.toLowerCase();
-
-        // Smart camelCase/snake_case normalization
+        String intentLower = extractLastKey(intent).toLowerCase();
         String normalizedIntent = normalizeIdentifier(intentLower);
-        String normalizedId = element.id != null ? normalizeIdentifier(element.id.toLowerCase()) : "";
-        String normalizedName = element.name != null ? normalizeIdentifier(element.name.toLowerCase()) : "";
 
-        // ID matching with normalization - 40% weight if static, 5% if dynamic
-        if (element.id != null && !element.id.isEmpty()) {
-            double idWeight = isDynamicId(element.id) ? 0.05 : 0.4;
-            double idScore = Math.max(
-                    calculateBestSimilarity(intentLower, element.id.toLowerCase()),
-                    calculateBestSimilarity(normalizedIntent, normalizedId));
-            score += idScore * idWeight;
+        for (HealingConfig.AttributeConfig attr : config.attributes) {
+            String value = element.attributes.get(attr.name);
+            if (value != null && !value.isEmpty()) {
+                double weight = attr.weight;
+                if (isDynamic(attr, value))
+                    weight *= 0.1; // Penalize dynamic values
+
+                double sim = Math.max(
+                        calculateBestSimilarity(intentLower, value.toLowerCase()),
+                        calculateBestSimilarity(normalizedIntent, normalizeIdentifier(value.toLowerCase())));
+                score += sim * weight;
+            }
         }
 
-        // Name attribute matching with normalization - 30% weight
-        if (element.name != null && !element.name.isEmpty()) {
-            double nameScore = Math.max(
-                    calculateBestSimilarity(intentLower, element.name.toLowerCase()),
-                    calculateBestSimilarity(normalizedIntent, normalizedName));
-            score += nameScore * 0.4;
-        }
-
-        // Locator value extraction - 15% weight
-        String locatorValue = extractValueFromLocator(element.locator);
-        if (locatorValue != null && !locatorValue.isEmpty()) {
-            String normalizedLocator = normalizeIdentifier(locatorValue.toLowerCase());
-            double locatorScore = Math.max(
-                    calculateBestSimilarity(intentLower, locatorValue.toLowerCase()),
-                    calculateBestSimilarity(normalizedIntent, normalizedLocator));
-            score += locatorScore * 0.15;
-        }
-
-        // Text matching - 3% weight
+        // Text matching - Bonus weight
         if (element.text != null && !element.text.isEmpty()) {
-            score += calculateBestSimilarity(intentLower, element.text.toLowerCase()) * 0.03;
-        }
-
-        // Semantic attributes - 1.5% weight
-        if (element.ariaLabel != null) {
-            score += calculateBestSimilarity(intentLower, element.ariaLabel.toLowerCase()) * 0.015;
-        }
-
-        // Placeholder - 0.5% weight
-        if (element.placeholder != null) {
-            score += calculateBestSimilarity(intentLower, element.placeholder.toLowerCase()) * 0.005;
+            score += calculateBestSimilarity(intentLower, element.text.toLowerCase()) * 0.05;
         }
 
         return score;
     }
 
-    private boolean isDynamicId(String id) {
-        if (id == null || id.isEmpty())
+    private boolean isDynamic(HealingConfig.AttributeConfig attr, String value) {
+        if (value == null || value.isEmpty())
+            return false;
+        if (attr.dynamicPatterns == null)
             return false;
 
-        // Pattern 1: Purely numeric (e.g., "123456")
-        if (id.matches("^\\d+$"))
-            return true;
-
-        // Pattern 2: Long numeric suffix (e.g., "btn-1767882003928")
-        if (id.matches(".*[_-]\\d{8,}$"))
-            return true;
-
-        // Pattern 3: Common dynamic patterns (e.g., "ember123", "v-123", "j_idt123")
-        String lowerId = id.toLowerCase();
-        if (lowerId.startsWith("ember") || lowerId.startsWith("v-") || lowerId.startsWith("j_idt"))
-            return true;
-
-        // Pattern 4: Random-looking hex string (e.g., "a1b2c3d4")
-        if (id.matches("^[0-9a-f]{8,32}$") && id.matches(".*\\d.*") && id.matches(".*[a-f].*"))
-            return true;
-
+        for (String pattern : attr.dynamicPatterns) {
+            try {
+                if (value.matches(pattern))
+                    return true;
+                if (value.toLowerCase().startsWith(pattern.toLowerCase().replace("^", "")))
+                    return true;
+            } catch (Exception e) {
+                // Ignore invalid regex
+            }
+        }
         return false;
     }
 
@@ -376,38 +340,10 @@ public class SemanticLocator {
                 .replaceAll("[^a-z0-9]", "");
     }
 
-    private String extractValueFromLocator(String locator) {
-        if (locator == null)
-            return null;
-
-        // Extract from @id='value'
-        java.util.regex.Pattern idPattern = java.util.regex.Pattern.compile("@id='([^']*)'|@id=\"([^\"]*)\"");
-        java.util.regex.Matcher idMatcher = idPattern.matcher(locator);
-        if (idMatcher.find()) {
-            return idMatcher.group(1) != null ? idMatcher.group(1) : idMatcher.group(2);
-        }
-
-        // Extract from @name='value'
-        java.util.regex.Pattern namePattern = java.util.regex.Pattern.compile("@name='([^']*)'|@name=\"([^\"]*)\"");
-        java.util.regex.Matcher nameMatcher = namePattern.matcher(locator);
-        if (nameMatcher.find()) {
-            return nameMatcher.group(1) != null ? nameMatcher.group(1) : nameMatcher.group(2);
-        }
-
-        // Extract from text() contains
-        java.util.regex.Pattern textPattern = java.util.regex.Pattern
-                .compile("text\\(\\)\\s*,\\s*'([^']*)'|text\\(\\)\\s*,\\s*\"([^\"]*)\"");
-        java.util.regex.Matcher textMatcher = textPattern.matcher(locator);
-        if (textMatcher.find()) {
-            return textMatcher.group(1) != null ? textMatcher.group(1) : textMatcher.group(2);
-        }
-
-        return null;
-    }
-
     private static class ElementInfo {
         String tagName;
-        String text, id, name, className, ariaLabel, placeholder, testId;
+        String text, name; // name is still used in combined logic
+        Map<String, String> attributes = new HashMap<>();
         String locator, description;
     }
 
