@@ -5,14 +5,14 @@ import java.util.*;
 
 public class SelfHealingDriver {
     private final IHealingDriver driver;
-    private final SemanticLocator semanticLocator;
     private final LocatorHistory history;
+    private final core.healing.engine.HealingEngine engine; // New V2 Engine
 
     public SelfHealingDriver(IHealingDriver driver) {
         this.driver = driver;
-        this.semanticLocator = new SemanticLocator(driver);
         this.history = new LocatorHistory();
         this.history.load();
+        this.engine = new core.healing.engine.HealingEngine(); // Initialize Engine
     }
 
     public String findElement(String elementId, String originalLocator) {
@@ -28,30 +28,93 @@ public class SelfHealingDriver {
         // Try original locator
         if (tryLocator(originalLocator)) {
             history.recordSuccess(elementId, originalLocator);
+            // No need to cache original locator if it works
             return originalLocator;
         }
 
-        // Try learning-based prediction
+        // Try learning-based prediction (V1 Memory)
         String learnedLocator = tryLearningBased(elementId);
         if (learnedLocator != null) {
             monitor.recordEvent(elementId, originalLocator, learnedLocator, "Learning", 1.0, true);
+            HealingCache.getInstance().put(originalLocator, learnedLocator);
             return learnedLocator;
         }
 
-        // Try semantic locators
-        String semanticLoc = semanticLocator.findBySemantics(elementId);
-        if (semanticLoc != null) {
-            history.recordSuccess(elementId, semanticLoc);
-            history.save();
-            Logger.info("Healed using semantic: %s", semanticLoc);
-            monitor.recordEvent(elementId, originalLocator, semanticLoc, "Semantic", 0.9, true);
-            return semanticLoc;
+        // Try V2 Healing Engine
+        Logger.info("Invoking Healing Engine for: %s", elementId);
+        core.healing.model.ElementNode targetNode = createTargetNode(elementId, originalLocator);
+        core.healing.model.HealingResult result = engine.heal(driver, targetNode);
+
+        if (result.isSuccess()) {
+            String healedLocator = result.getElement().getLocator();
+            if (healedLocator != null) {
+                history.recordSuccess(elementId, healedLocator);
+                history.save();
+
+                // Update Global Cache
+                HealingCache.getInstance().put(originalLocator, healedLocator);
+
+                Logger.info("Healed using strategy %s: %s (Score: %.2f)",
+                        result.getStrategyUsed(), healedLocator, result.getScore());
+                monitor.recordEvent(elementId, originalLocator, healedLocator, result.getStrategyUsed(),
+                        result.getScore(), true);
+                return healedLocator;
+            }
         }
 
         history.recordFailure(elementId, originalLocator);
         history.save();
         monitor.recordEvent(elementId, originalLocator, null, "None", 0.0, false);
         return null;
+    }
+
+    private core.healing.model.ElementNode createTargetNode(String elementId, String locator) {
+        core.healing.model.ElementNode node = new core.healing.model.ElementNode();
+        // 1. Enrich from ElementId (e.g. "login.username" -> name="username" or
+        // text="username")
+        String key = extractKey(elementId);
+        node.addAttribute("name", key);
+        node.addAttribute("id", key);
+        node.addAttribute("data-testid", key);
+
+        // 2. Parse Locator if possible (Simple extraction)
+        if (locator != null && locator.startsWith("//")) {
+            // Basic regex to pull tag and attributes
+            // //input[@name='foo']
+            try {
+                int tagEnd = locator.indexOf("[");
+                if (tagEnd > 2) {
+                    String tag = locator.substring(2, tagEnd);
+                    node.setTagName(tag);
+                }
+
+                // Extract attribute values
+                java.util.regex.Pattern p = java.util.regex.Pattern.compile("@([a-zA-Z-]+)='([^']*)'");
+                java.util.regex.Matcher m = p.matcher(locator);
+                while (m.find()) {
+                    node.addAttribute(m.group(1), m.group(2));
+                }
+
+                // Extract text()
+                if (locator.contains("text()")) {
+                    java.util.regex.Pattern pt = java.util.regex.Pattern.compile("text\\(\\)\\s*=\\s*'([^']*)'");
+                    java.util.regex.Matcher mt = pt.matcher(locator);
+                    if (mt.find()) {
+                        node.setText(mt.group(1));
+                    }
+                }
+            } catch (Exception e) {
+                // Ignore parsing errors, fallback to ID-based matching
+            }
+        }
+        return node;
+    }
+
+    private String extractKey(String elementId) {
+        if (elementId == null)
+            return "";
+        int dotIdx = elementId.lastIndexOf('.');
+        return dotIdx >= 0 ? elementId.substring(dotIdx + 1) : elementId;
     }
 
     private String tryLearningBased(String elementId) {

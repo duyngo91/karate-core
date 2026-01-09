@@ -14,7 +14,6 @@ import core.healing.IHealingDriver;
 import core.healing.HealingInitializer;
 import core.healing.LocatorMapper;
 import core.healing.SelfHealingDriver;
-import core.healing.VisualTextMapper;
 import core.platform.common.Configuration;
 import core.platform.common.Constants;
 import core.platform.exceptions.ElementNotFoundException;
@@ -451,6 +450,18 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
 
     @Override
     public Element waitFor(String locator) {
+        // 1. Check Global Cache first
+        if (core.healing.HealingCache.getInstance().contains(locator)) {
+            String cached = core.healing.HealingCache.getInstance().get(locator);
+            Logger.info("[Cache Hit] waitFor: %s -> %s", locator, cached);
+            try {
+                return new WebElement(this, getOptions().waitForAny(this, cached));
+            } catch (Exception e) {
+                Logger.warn("[Cache Invalid] Cached locator failed: %s", cached);
+                // If cached locator fails, we can either remove it or fall back
+            }
+        }
+
         try {
             return new WebElement(this, getOptions().waitForAny(this, locator));
         } catch (Exception e) {
@@ -496,6 +507,13 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
 
     private String tryHeal(String locator) {
         try {
+            // 1. Check Global Cache first
+            if (core.healing.HealingCache.getInstance().contains(locator)) {
+                String cached = core.healing.HealingCache.getInstance().get(locator);
+                Logger.info("[Cache] Using cached locator: %s -> %s", locator, cached);
+                return cached;
+            }
+
             LocatorMapper mapper = LocatorMapper.getInstance();
             if (mapper.isManaged(locator)) {
                 String elementId = mapper.getElementId(locator);
@@ -925,11 +943,6 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     @AutoDef
     public String getPageSource() {
         return (String) script("document.documentElement.outerHTML");
-    }
-
-    @AutoDef
-    public List<Map<String, Object>> visualTextMap() {
-        return new VisualTextMapper(this).getVisualTextMap();
     }
 
     @AutoDef

@@ -13,6 +13,12 @@ public class HealingConfig {
     private static HealingConfig instance;
     private static final String CONFIG_PATH = "healing-config.json";
 
+    // Constants used by V2 strategies
+    public static final double HEALING_THRESHOLD = 0.5;
+    public static final boolean ENABLE_DEBUG_LOGGING = true;
+    public static final boolean ENABLE_PERFORMANCE_LOGGING = false;
+    public static final int MAX_CANDIDATES = 50;
+
     @JsonProperty("enabled")
     public boolean enabled = true;
 
