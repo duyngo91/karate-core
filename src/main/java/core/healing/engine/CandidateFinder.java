@@ -76,6 +76,8 @@ public class CandidateFinder {
                     if (map.get("depth") instanceof Number)
                         node.setDepth(((Number) map.get("depth")).intValue());
                     node.setParentTag((String) map.get("parentTag"));
+                    node.setPrevSiblingTag((String) map.get("prevSiblingTag"));
+                    node.setPrevSiblingText((String) map.get("prevSiblingText"));
 
                     nodes.add(node);
                 }

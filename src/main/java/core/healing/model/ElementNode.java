@@ -15,6 +15,8 @@ public class ElementNode {
     private int x, y, width, height;
     private int depth; // Hierarchy depth if available
     private String parentTag; // Tag of the parent element
+    private String prevSiblingTag; // Tag of the previous sibling
+    private String prevSiblingText; // Text of the previous sibling
 
     public ElementNode() {
     }
@@ -105,6 +107,22 @@ public class ElementNode {
 
     public void setParentTag(String parentTag) {
         this.parentTag = parentTag;
+    }
+
+    public String getPrevSiblingTag() {
+        return prevSiblingTag;
+    }
+
+    public void setPrevSiblingTag(String prevSiblingTag) {
+        this.prevSiblingTag = prevSiblingTag;
+    }
+
+    public String getPrevSiblingText() {
+        return prevSiblingText;
+    }
+
+    public void setPrevSiblingText(String prevSiblingText) {
+        this.prevSiblingText = prevSiblingText;
     }
 
     @Override

@@ -103,6 +103,20 @@ public class SelfHealingDriver {
                         node.setText(mt.group(1));
                     }
                 }
+
+                // Extract Neighbor Info from XPath (e.g.
+                // //label[text()='Password']/following-sibling::input)
+                // This is a basic heuristc to infer context from the Locator string itself
+                if (locator.contains("following-sibling")) {
+                    java.util.regex.Pattern pNeighbor = java.util.regex.Pattern
+                            .compile("\\[text\\(\\)\\s*=\\s*'([^']*)'\\].*following-sibling");
+                    java.util.regex.Matcher mNeighbor = pNeighbor.matcher(locator);
+                    if (mNeighbor.find()) {
+                        String neighborText = mNeighbor.group(1);
+                        node.setPrevSiblingText(neighborText);
+                        Logger.debug("Inferred Neighbor Context: '%s'", neighborText);
+                    }
+                }
             } catch (Exception e) {
                 // Ignore parsing errors, fallback to ID-based matching
             }

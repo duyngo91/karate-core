@@ -27,6 +27,7 @@ public class HealingEngine {
         strategies.add(new CrossAttributeStrategy());
         strategies.add(new SemanticValueStrategy());
         strategies.add(new StructuralStrategy());
+        strategies.add(new NeighborStrategy());
 
         Logger.info("Healing Engine initialized with %d strategies", strategies.size());
     }
@@ -101,6 +102,20 @@ public class HealingEngine {
             // Simplified text locator
             String text = node.getText().length() > 20 ? node.getText().substring(0, 20) : node.getText();
             return "//" + node.getTagName() + "[contains(text(), '" + text + "')]";
+        }
+
+        // Try Neighbor Context (if available and strong)
+        if (node.getPrevSiblingText() != null && !node.getPrevSiblingText().isEmpty()
+                && node.getPrevSiblingTag() != null) {
+            // Heuristic: If we are here, ID/Name/Text strategies likely failed.
+            // Construct: //prevTag[contains(text(),'prevText')]/following-sibling::tag[1]
+            String prevText = node.getPrevSiblingText().length() > 20 ? node.getPrevSiblingText().substring(0, 20)
+                    : node.getPrevSiblingText();
+            // Escape single quotes just in case
+            prevText = prevText.replace("'", "\'");
+
+            return "//" + node.getPrevSiblingTag() + "[contains(text(), '" + prevText + "')]/following-sibling::"
+                    + node.getTagName() + "[1]";
         }
 
         // Fallback to internal xpath if we had one, or attributes

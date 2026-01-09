@@ -1,21 +1,22 @@
 # Healing Strategies Documentation
 
-This document explains the 6 healing strategies used in the framework's self-healing engine. The engine uses a "Hybrid" approach, combining the speed of the original framework with the intelligence of Advanced Healing.
+This document explains the **7 healing strategies** used in the framework's self-healing engine. The engine uses a "Hybrid" approach, combining the speed of the original framework with the intelligence of Advanced Healing.
 
 ## Overview
 
-When the framework fails to find an element with the original specific locator (e.g. `//input[@id='username']`), it automatically triggers the **Healing Engine**. The engine analyzes the entire page and scores all potential candidate elements against the *metadata* of the missing element (captured during previous successful runs or inferred from the locator).
+When the framework fails to find an element with the original specific locator (e.g., `//input[@id='username']`), it automatically triggers the **Healing Engine**. The engine analyzes the entire page and scores all potential candidate elements against the *metadata* of the missing element.
 
 The candidates are scored using the following strategies:
 
 | Strategy | Name | Weight | Description |
 | :--- | :--- | :--- | :--- |
-| **1** | **ExactAttribute** | `1.00` | Matches exact attribute values (e.g. `id="user"` matches `id="user"`). |
-| **2** | **KeyBased** | `0.95` | Matches logical keys in different casing (e.g. `txtUsername` matches `username`). |
-| **3** | **TextBased** | `0.92` | Matches visible text content, even across different tags (e.g. `Label` matches `Span`). |
-| **4** | **CrossAttribute** | `0.90` | Matches values across different attributes (e.g. `name="user"` matches `id="user"`). |
-| **5** | **SemanticValue** | `0.85` | Matches similar meanings (e.g. `Log In` matches `Sign In`). |
-| **6** | **Structural** | `0.75` | Matches based on DOM structure (depth, parent tag) when attributes fail. |
+| **1** | **ExactAttribute** | `1.00` | Matches exact attribute values (e.g., `id="user"` matches `id="user"`). |
+| **2** | **KeyBased** | `0.95` | Matches logical keys in different casing (e.g., `txtUsername` matches `username`). |
+| **3** | **TextBased** | `0.92` | Matches visible text content, even across different tags (e.g., `Label` matches `Span`). |
+| **4** | **CrossAttribute** | `0.90` | Matches values across different attributes (e.g., `name="user"` matches `id="user"`). |
+| **5** | **SemanticValue** | `0.85` | Matches similar meanings (e.g., `Log In` matches `Sign In`). |
+| **6** | **Neighbor** | `0.80` | **[NEW]** Matches based on surrounding elements (e.g., Input next to "Password" Label). |
+| **7** | **Structural** | `0.75` | Matches based on DOM structure (depth, parent tag) when attributes fail. |
 
 ---
 
@@ -23,75 +24,48 @@ The candidates are scored using the following strategies:
 
 ### 1. ExactAttribute Strategy (Weight: 1.0)
 **The Precision Master.**
-This strategy looks for elements that have the **SAME attribute name** with the **SAME value** (or very similar value).
-
+Looks for elements that have the **SAME attribute name** with the **SAME value**.
 *   **Logic**: "If it looked like a duck before, it's probably still a duck."
-*   **Example**:
-    *   Original: `<input id="submit_btn" class="btn-primary">`
-    *   Candidate: `<input id="submit_btn" class="btn-secondary">`
-    *   **Result**: High match on `id`, partial match on `class`.
+*   **Result**: High match on `id`, `name`, or `data-testid`.
 
 ### 2. KeyBased Strategy (Weight: 0.95)
 **The Developer Mind Reader.**
-Developers often use standard naming conventions (prefixes like `btn`, `txt`, `lbl` or casing like `camelCase`, `snake_case`). This strategy normalizes these keys to find the logical match.
-
+Normalizes naming conventions (prefixes like `btn`, `txt`, `lbl` or casing like `camelCase`, `snake_case`) to find logical matches.
 *   **Logic**: `txtUsername` == `user_name` == `UserName` == `username`.
-*   **Example**:
-    *   Original: `name="txtFirstName"`
-    *   Candidate: `id="firstName"`
-    *   **Result**: Match! The strategy strips `txt` and sees `FirstName` matches `firstName`.
+*   **Example**: `name="txtFirstName"` matches `id="firstName"`.
 
 ### 3. TextBased Strategy (Weight: 0.92)
 **The Visual Matcher.**
 For elements like Buttons, Links, and Labels, the text usually remains stable even if the underlying ID or Class changes.
-
 *   **Logic**: "If it says 'Save', it's the Save button."
-*   **Example**:
-    *   Original: `<button>Submit Order</button>`
-    *   Candidate: `<a class="btn">Submit Order</a>`
-    *   **Result**: Exact text match, even though tag changed from `button` to `a`.
+*   **Example**: `<button>Submit</button>` matches `<a class="btn">Submit</a>`.
 
 ### 4. CrossAttribute Strategy (Weight: 0.90)
 **The Attribute Swapper.**
-Modern frameworks often shift values between attributes (e.g. what was a `name` becomes a `data-testid` or `id`). This strategy checks "Identity" attributes against each other.
-
-*   **Logic**: `name` value might have moved to `id` or `data-testid`.
-*   **Example**:
-    *   Original: `name="user_email"`
-    *   Candidate: `data-testid="user_email"`
-    *   **Result**: Match! It recognizes both are "Identity" attributes.
+Checks "Identity" attributes against each other, assuming values might shift (e.g., from `name` to `id`).
+*   **Logic**: `name="user_email"` matches `data-testid="user_email"`.
 
 ### 5. SemanticValue Strategy (Weight: 0.85)
 **The AI Simulator.**
-Uses fuzzy string matching (Levenshtein distance, Jaccard similarity) to understand that two strings are *almost* the same or mean the same thing.
-
+Uses fuzzy string matching (Levenshtein, Jaro-Winkler) to find strings that are *almost* the same or mean the same thing.
 *   **Logic**: "Close enough is good enough."
-*   **Example**:
-    *   Original: `text="Proceed to Checkout"`
-    *   Candidate: `text="Proceed to Pay"`
-    *   **Result**: High semantic score due to shared words and meaning.
+*   **Example**: `text="Proceed to Checkout"` matches `text="Proceed to Pay"`.
 
-### 6. Structural Strategy (Weight: 0.75)
+### 6. Neighbor Strategy (Weight: 0.80)
+**The Contextual Locator.**
+Uses the context of surrounding elements ("neighbors") to locate the target. Ideally for forms where input fields lose IDs but static Labels remain constant.
+*   **Logic**: Checks the element immediately preceding the target (Previous Sibling).
+*   **Example**: Finds an input field because it is to the right of a "Password" label.
+*   **Outcome**: If found, the engine generates a **Robust Neighbor XPath** (e.g., `//label[text()='Password']/following-sibling::input[1]`) to ensure the element can be found reliably in future runs.
+
+### 7. Structural Strategy (Weight: 0.75)
 **The Last Resort.**
-When all identifiers change (dynamic IDs, no text), this strategy looks at *where* the element is.
+When all identifiers change, this looks at *where* the element is in the DOM tree.
+*   **Logic**: Compares Tag Name, Depth, and Parent Tag.
+*   **Example**: "It's the input inside the third div."
 
-*   **Logic**: "It's the input inside the third div."
-*   **Example**:
-    *   Original: `<div class="container"><input type="password"></div>` (Depth: 5)
-    *   Candidate: `<div class="wrapper"><input type="password"></div>` (Depth: 5)
-    *   **Result**: Matches based on `parentTag` (div) and `type` (password) and `depth`.
+---
 
 ## Configuration
 
-You can tune the healing sensitivity in `HealingConfig.java` or via `healing-config.json`:
-
-```json
-{
-  "minSimilarityThreshold": 0.5,
-  "attributes": [
-    { "name": "id", "weight": 1.0 },
-    { "name": "data-testid", "weight": 0.9 },
-    { "name": "name", "weight": 0.8 }
-  ]
-}
-```
+You can tune the healing sensitivity in `HealingConfig.java` or via `healing-config.json`.
