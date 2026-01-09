@@ -47,6 +47,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     private static final int MIN_POINT = Constants.MIN_SCROLL_POINT;
     private static final int MAX_POINT = Constants.MAX_SCROLL_POINT;
     private final MessageHandler messageHandler;
+    private final SelfHealingDriver healer;
 
     public static String of(String path) {
         if (path.contains("/"))
@@ -79,6 +80,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
 
         // Auto-initialize healing if enabled
         HealingInitializer.autoInit();
+        this.healer = new SelfHealingDriver(this);
     }
 
     private static String determineChromePath() {
@@ -517,8 +519,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
             LocatorMapper mapper = LocatorMapper.getInstance();
             if (mapper.isManaged(locator)) {
                 String elementId = mapper.getElementId(locator);
-                SelfHealingDriver healer = new SelfHealingDriver(this);
-                String healed = healer.findElement(elementId, locator);
+                String healed = this.healer.findElement(elementId, locator);
                 if (healed != null && !healed.equals(locator)) {
                     Logger.info("Healed: %s → %s", elementId, healed);
                     return healed;
@@ -915,16 +916,23 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
 
         String mimeType = getMimeType(filePath);
 
+        byte[] content = FileUtils.toBytes(file);
+        String base64 = Base64.getEncoder().encodeToString(content);
+
         String uploadScript = String.format(
                 "(function() {" +
                         "  var input = %s;" +
-                        "  var file = new File(['dummy'], '%s', {type: '%s'});" +
+                        "  var b64 = '%s';" +
+                        "  var bin = atob(b64);" +
+                        "  var arr = new Uint8Array(bin.length);" +
+                        "  for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);" +
+                        "  var file = new File([arr], '%s', {type: '%s'});" +
                         "  var dt = new DataTransfer();" +
                         "  dt.items.add(file);" +
                         "  input.files = dt.files;" +
                         "  input.dispatchEvent(new Event('change', {bubbles: true}));" +
                         "})();",
-                DriverOptions.selector(inputXpath), file.getName(), mimeType);
+                DriverOptions.selector(inputXpath), base64, file.getName(), mimeType);
 
         script(uploadScript);
         Logger.debug("File upload completed for: %s", filePath);
