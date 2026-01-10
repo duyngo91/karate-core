@@ -66,6 +66,8 @@ public class HealingEngine {
                 return new LocationHealingStrategy();
             case "RagHealingStrategy":
                 return new RagHealingStrategy();
+            case "VisualHealingStrategy":
+                return new VisualHealingStrategy();
             default:
                 Logger.warn("Unknown strategy in config: %s", name);
                 return null;
@@ -94,7 +96,18 @@ public class HealingEngine {
             for (HealingStrategy strategy : strategies) {
                 try {
                     double rawScore = strategy.score(original, candidate);
-                    double weightedScore = rawScore * strategy.getWeight();
+                    /***
+                     * Trọng số của chiến lược đã được loại bỏ để đánh giá công bằng hơn giữa các chiến lược.
+                     * Nếu cần, có thể thêm lại trọng số sau này.
+                     * Mục đích của trong số là chọn ra chiến lược nào ưu tiên nhưng nó cũng làm ảnh hướng của chiến lược đó với mức HEALING_THRESHOLD
+                     * vd như so sanh bằng hình là 0.9 * với trong số 0.3 thì lúc nào cũng dưới HEALING_THRESHOLD
+                     *
+                     * Đầu tư tiên, chúng ta cần đánh giá hiệu quả của từng chiến lược một cách riêng biệt trước khi áp dụng trọng số, có vượt qua HEALING_THRESHOLD
+                     * Sau đó những chiến lược nào đã vượt qua HEALING_THRESHOLD rồi thì dùng trọng số để xem nên chọn cái nào nhất
+                     */
+
+                    //double weightedScore = rawScore * strategy.getWeight();
+                    double weightedScore = rawScore;
 
                     if (weightedScore > bestWeightedScore) {
                         bestWeightedScore = weightedScore;

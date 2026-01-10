@@ -19,6 +19,9 @@ public class ElementNode {
     private String prevSiblingText; // Text of the previous sibling
     private String elementId; // Unique ID for RAG lookup (e.g. "login.username")
 
+    // Transient field for Visual Healing (not serialized, in-memory only)
+    private transient java.awt.image.BufferedImage screenshot;
+
     public ElementNode() {
     }
 
@@ -132,6 +135,14 @@ public class ElementNode {
 
     public void setElementId(String elementId) {
         this.elementId = elementId;
+    }
+
+    public java.awt.image.BufferedImage getScreenshot() {
+        return screenshot;
+    }
+
+    public void setScreenshot(java.awt.image.BufferedImage screenshot) {
+        this.screenshot = screenshot;
     }
 
     @Override

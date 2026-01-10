@@ -79,6 +79,9 @@ public class CandidateFinder {
                     node.setPrevSiblingTag((String) map.get("prevSiblingTag"));
                     node.setPrevSiblingText((String) map.get("prevSiblingText"));
 
+                    // Capture screenshot for Visual Healing
+                    captureScreenshotForCandidate(driver, node);
+
                     nodes.add(node);
                 }
                 return nodes;
@@ -88,5 +91,72 @@ public class CandidateFinder {
             Logger.error("Failed to extract elements via JS: %s", e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * Capture screenshot for a candidate element (in-memory).
+     */
+    private static void captureScreenshotForCandidate(IHealingDriver driver, ElementNode candidate) {
+        try {
+            // Only capture if VisualHealingStrategy is enabled
+            java.util.List<String> strategies = core.healing.HealingConfig.getInstance().getStrategies();
+            boolean visualEnabled = strategies != null && strategies.contains("VisualHealingStrategy");
+            if (!visualEnabled) {
+                return; // Skip if Visual Strategy not in config
+            }
+
+            core.healing.visual.VisualService visualService = core.healing.visual.VisualService.getInstance();
+            if (!visualService.isAvailable()) {
+                return; // Skip if OpenCV not available
+            }
+
+            // Build temporary locator
+            String locator = constructTempLocator(candidate);
+            if (locator == null) {
+                return; // Can't build locator
+            }
+
+            // Capture screenshot (in-memory)
+            java.awt.image.BufferedImage screenshot = visualService.captureScreenshot(driver, locator);
+            candidate.setScreenshot(screenshot);
+
+            if (screenshot != null) {
+                Logger.debug("Captured screenshot for candidate: %s", locator);
+            }
+        } catch (Exception e) {
+            // Non-critical: Visual Strategy will return 0.0 if no screenshot
+            Logger.debug("Screenshot capture failed for candidate: %s", e.getMessage());
+        }
+    }
+
+    /**
+     * Construct a temporary CSS/XPath locator for screenshot capture.
+     */
+    private static String constructTempLocator(ElementNode node) {
+        // Try ID first (most reliable)
+        String id = node.getAttribute("id");
+        if (id != null && !id.isEmpty()) {
+            return "#" + id;
+        }
+
+        // Try name attribute
+        String name = node.getAttribute("name");
+        if (name != null && !name.isEmpty()) {
+            return "[name='" + name + "']";
+        }
+
+        // Try data-testid
+        String testId = node.getAttribute("data-testid");
+        if (testId != null && !testId.isEmpty()) {
+            return "[data-testid='" + testId + "']";
+        }
+
+        // Fallback: Use class if unique enough
+        String className = node.getAttribute("class");
+        if (className != null && !className.isEmpty() && !className.contains(" ")) {
+            return "." + className;
+        }
+
+        return null; // Can't create reliable locator
     }
 }

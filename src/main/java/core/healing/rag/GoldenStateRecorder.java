@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import core.healing.IHealingDriver;
+import core.healing.HealingConfig;
 import core.platform.utils.Logger;
 
 import java.io.*;
@@ -115,6 +116,27 @@ public class GoldenStateRecorder {
                     meta.setVector(vector);
                 } catch (Throwable t) {
                     Logger.warn("Embedding generation failed, saving without vector: %s", t.getMessage());
+                }
+
+                // Capture screenshot for Visual Healing (only if strategy is enabled)
+                try {
+                    // Check if VisualHealingStrategy is in the config
+                    java.util.List<String> strategies = HealingConfig.getInstance().getStrategies();
+                    boolean visualEnabled = strategies != null && strategies.contains("VisualHealingStrategy");
+
+                    if (visualEnabled) {
+                        core.healing.visual.VisualService visualService = core.healing.visual.VisualService
+                                .getInstance();
+                        if (visualService.isAvailable()) {
+                            java.awt.image.BufferedImage screenshot = visualService.captureScreenshot(driver, locator);
+                            if (screenshot != null) {
+                                visualService.saveScreenshot(screenshot, elementId);
+                                Logger.debug("Screenshot captured for: %s", elementId);
+                            }
+                        }
+                    }
+                } catch (Throwable t) {
+                    Logger.debug("Screenshot capture failed (non-critical): %s", t.getMessage());
                 }
 
                 metadataMap.put(elementId, meta);

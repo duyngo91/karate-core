@@ -1,8 +1,19 @@
 {
-  "enabled" : true,
-  "captureGoldenState" : true,
-  "semanticEnabled" : true,
-  "semanticMode" : "HYBRID",
-  "locatorPath" : "src/test/java/web/locators",
-  "strategies" : [ "ExactAttributeStrategy", "KeyBasedStrategy", "TextBasedStrategy", "CrossAttributeStrategy", "SemanticValueStrategy", "StructuralStrategy", "NeighborStrategy", "LocationHealingStrategy", "RagHealingStrategy" ]
+    "enabled": true,
+    "captureGoldenState": true,
+    "semanticEnabled": true,
+    "semanticMode": "HYBRID",
+    "locatorPath": "src/test/java/web/locators",
+    "strategies": [
+        "ExactAttributeStrategy",
+        "KeyBasedStrategy",
+        "TextBasedStrategy",
+        "CrossAttributeStrategy",
+        "SemanticValueStrategy",
+        "StructuralStrategy",
+        "NeighborStrategy",
+        "LocationHealingStrategy",
+        "RagHealingStrategy",
+        "VisualHealingStrategy"
+    ]
 }

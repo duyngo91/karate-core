@@ -72,6 +72,13 @@
             <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
             <version>0.31.0</version>
         </dependency>
+
+        <!-- OpenCV for Visual Healing -->
+        <dependency>
+            <groupId>org.openpnp</groupId>
+            <artifactId>opencv</artifactId>
+            <version>4.9.0-0</version>
+        </dependency>
     </dependencies>
     <build>
         <testResources>
