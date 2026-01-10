@@ -22,6 +22,13 @@ The project is optimized for **Amazon Q** to assist developers throughout the au
 - **Intelligent Knowledge Base**: Pre-indexed context (`.amazonq/knowledge`) for faster troubleshooting and framework-specific fixes.
 - **Agentic Workflows**: Standardized AI prompting rules for generating, debugging, and reporting test results.
 
+### 📊 Healing Insights Report
+After each test execution, a detailed dashboard is generated to provide visibility into the healing actions taken:
+- **Location**: `target/healing-report.html`
+- **Features**: Success rates, original vs. healed locators, strategy scores, and timestamps.
+
+![Healing Report](img_rp.png)
+
 ### 3. Advanced Platform Utilities
 - **Flexible Waiting**: Custom wait mechanisms for attributes, text, and element existence.
 - **Complex Element Handling**: Specialized services for Tables, DropLists, and Shadow Elements.
