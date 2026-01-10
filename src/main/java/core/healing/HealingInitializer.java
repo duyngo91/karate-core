@@ -60,8 +60,7 @@ public class HealingInitializer {
             mapper.buildIndex();
 
             if (!initialized) {
-                LocatorHistory history = new LocatorHistory();
-                history.load();
+                // Initialized flag
                 initialized = true;
             }
 

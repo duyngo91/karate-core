@@ -45,6 +45,7 @@
         }
     ],
     "semanticEnabled": true,
+    "captureGoldenState": true,
     "minSimilarityThreshold": 0.4,
     "locatorPath": "src/test/java/web/locators",
     "visualAi": {

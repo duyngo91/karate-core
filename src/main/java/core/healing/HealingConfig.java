@@ -22,6 +22,9 @@ public class HealingConfig {
     @JsonProperty("enabled")
     public boolean enabled = true;
 
+    @JsonProperty("captureGoldenState")
+    public boolean captureGoldenState = true;
+
     @JsonProperty("attributes")
     public List<AttributeConfig> attributes = new ArrayList<>();
 
@@ -60,6 +63,11 @@ public class HealingConfig {
     public boolean isEnabled() {
         String prop = System.getProperty("auto.healing");
         return prop != null ? "true".equalsIgnoreCase(prop) : enabled;
+    }
+
+    public boolean isCaptureGoldenState() {
+        String prop = System.getProperty("healing.capture");
+        return prop != null ? "true".equalsIgnoreCase(prop) : captureGoldenState;
     }
 
     public boolean isSemanticEnabled() {

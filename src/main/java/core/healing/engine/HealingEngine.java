@@ -27,7 +27,9 @@ public class HealingEngine {
         strategies.add(new CrossAttributeStrategy());
         strategies.add(new SemanticValueStrategy());
         strategies.add(new StructuralStrategy());
+        strategies.add(new StructuralStrategy());
         strategies.add(new NeighborStrategy());
+        strategies.add(new RagHealingStrategy()); // New RAG Strategy
 
         Logger.info("Healing Engine initialized with %d strategies", strategies.size());
     }

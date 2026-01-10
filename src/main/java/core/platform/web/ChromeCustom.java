@@ -465,7 +465,9 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         }
 
         try {
-            return new WebElement(this, getOptions().waitForAny(this, locator));
+            Element el = new WebElement(this, getOptions().waitForAny(this, locator));
+            recordSuccess(locator);
+            return el;
         } catch (Exception e) {
             String healed = tryHeal(locator);
             return new WebElement(this, getOptions().waitForAny(this, healed, locator));
@@ -529,6 +531,20 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
             Logger.debug("Healing skipped: %s", e.getMessage());
         }
         return locator;
+    }
+
+    private void recordSuccess(String locator) {
+        try {
+            if (core.healing.HealingConfig.getInstance().isCaptureGoldenState()) {
+                LocatorMapper mapper = LocatorMapper.getInstance();
+                if (mapper.isManaged(locator)) {
+                    String elementId = mapper.getElementId(locator);
+                    core.healing.rag.GoldenStateRecorder.getInstance().captureAndSave(this, elementId, locator);
+                }
+            }
+        } catch (Exception e) {
+            Logger.warn("Failed to record success for %s: %s", locator, e.getMessage());
+        }
     }
 
     @AutoDef

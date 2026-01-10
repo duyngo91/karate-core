@@ -1,18 +1,20 @@
 package core.healing;
 
 import core.platform.utils.Logger;
-import java.util.*;
 
 public class SelfHealingDriver {
     private final IHealingDriver driver;
-    private final LocatorHistory history;
+    // private final LocatorHistory history; // Removed in favor of
+    // GoldenStateRecorder
     private final core.healing.engine.HealingEngine engine; // New V2 Engine
 
     public SelfHealingDriver(IHealingDriver driver) {
         this.driver = driver;
-        this.history = new LocatorHistory();
-        this.history.load();
+        // this.history = new LocatorHistory();
+        // this.history.load();
         this.engine = new core.healing.engine.HealingEngine(); // Initialize Engine
+        // Ensure recorder is loaded
+        core.healing.rag.GoldenStateRecorder.getInstance();
     }
 
     public String findElement(String elementId, String originalLocator) {
@@ -27,12 +29,15 @@ public class SelfHealingDriver {
 
         // Try original locator
         if (tryLocator(originalLocator)) {
-            history.recordSuccess(elementId, originalLocator);
+            // history.recordSuccess(elementId, originalLocator); // Removed
+            if (HealingConfig.getInstance().isCaptureGoldenState()) {
+                core.healing.rag.GoldenStateRecorder.getInstance().captureAndSave(driver, elementId, originalLocator);
+            }
             // No need to cache original locator if it works
             return originalLocator;
         }
 
-        // Try learning-based prediction (V1 Memory)
+        // Try learning-based prediction (Golden State Cache)
         String learnedLocator = tryLearningBased(elementId);
         if (learnedLocator != null) {
             monitor.recordEvent(elementId, originalLocator, learnedLocator, "Learning", 1.0, true);
@@ -48,8 +53,10 @@ public class SelfHealingDriver {
         if (result.isSuccess()) {
             String healedLocator = result.getElement().getLocator();
             if (healedLocator != null) {
-                history.recordSuccess(elementId, healedLocator);
-                history.save();
+
+                if (HealingConfig.getInstance().isCaptureGoldenState()) {
+                    core.healing.rag.GoldenStateRecorder.getInstance().captureAndSave(driver, elementId, healedLocator);
+                }
 
                 // Update Global Cache
                 HealingCache.getInstance().put(originalLocator, healedLocator);
@@ -62,8 +69,8 @@ public class SelfHealingDriver {
             }
         }
 
-        history.recordFailure(elementId, originalLocator);
-        history.save();
+        // history.recordFailure(elementId, originalLocator); // Removed
+        // history.save(); // Removed
         monitor.recordEvent(elementId, originalLocator, null, "None", 0.0, false);
         return null;
     }
@@ -132,14 +139,14 @@ public class SelfHealingDriver {
     }
 
     private String tryLearningBased(String elementId) {
-        List<String> predicted = history.predictBestLocators(elementId);
-
-        for (String locator : predicted) {
-            if (tryLocator(locator)) {
-                history.recordSuccess(elementId, locator);
-                history.save();
-                Logger.info("Healed using learning: %s", locator);
-                return locator;
+        // Use GoldenStateRecorder as the persistent cache
+        core.healing.rag.ElementMetadata meta = core.healing.rag.GoldenStateRecorder.getInstance()
+                .getMetadata(elementId);
+        if (meta != null && meta.getLocator() != null) {
+            String cachedLocator = meta.getLocator();
+            if (tryLocator(cachedLocator)) {
+                Logger.info("Healed using Golden State Cache: %s", cachedLocator);
+                return cachedLocator;
             }
         }
         return null;
