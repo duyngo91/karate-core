@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Healing Test V1 (Baseline)</title>
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: blue;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Healing Test V1 (Original)</h1>
+
+    <!-- Group 1: ID Changes -->
+    <div class="section" id="group1">
+        <h3>Group 1: ID Changes</h3>
+        <button id="test_01">Button 01</button>
+        <button id="test_02">Button 02</button>
+        <button id="test_03">Button 03</button>
+        <button id="test_04">Button 04</button>
+        <button id="test_05">Button 05</button>
+        <button id="test_06">Button 06</button>
+        <button id="test_07">Button 07</button>
+        <button id="test_08">Button 08</button>
+        <button id="test_09">Button 09</button>
+        <button id="test_10">Button 10</button>
+    </div>
+
+    <!-- Group 2: Name/Class Changes -->
+    <div class="section" id="group2">
+        <h3>Group 2: Name/Class Changes</h3>
+        <input name="test_name_11" value="Input 11">
+        <input name="test_name_12" value="Input 12">
+        <button class="btn btn-primary test-class-13" id="id_13">Button 13</button>
+        <a href="#" class="nav-link active test-class-14" id="id_14">Link 14</a>
+        <input name="test_name_15" value="Input 15">
+        <div class="alert alert-danger test-class-16" id="id_16">Alert 16</div>
+        <input name="test_name_17" value="Input 17">
+        <h4 class="card-title test-class-18" id="id_18">Title 18</h4>
+        <input name="test_name_19" value="Input 19">
+        <span class="icon-settings test-class-20" id="id_20">Icon 20</span>
+    </div>
+
+    <!-- Group 3: Text Changes -->
+    <div class="section" id="group3">
+        <h3>Group 3: Text Changes</h3>
+        <button id="id_21">Login</button>
+        <button id="id_22">Submit</button>
+        <a href="#" id="id_23">Contact Us</a>
+        <button id="id_24">Add to Cart</button>
+        <a href="#" id="id_25">View Details</a>
+        <button id="id_26">Delete</button>
+        <button id="id_27">Edit Profile</button>
+        <button id="id_28">Next</button>
+        <button id="id_29">Previous</button>
+        <a href="#" id="id_30">Forgot Password?</a>
+    </div>
+
+    <!-- Group 4: Structural Changes -->
+    <div class="section" id="group4">
+        <h3>Group 4: Structural Changes</h3>
+        <div id="container_31"><button id="id_31">Button 31</button></div>
+        <ul>
+            <li id="id_32">Item 32</li>
+        </ul>
+        <p><span id="id_33">Span 33</span></p>
+        <div id="parent_34"><button id="id_34">Button 34</button>
+            <div>Sibling</div>
+        </div>
+        <div id="parent_35">
+            <div>Sibling</div><button id="id_35">Button 35</button>
+        </div>
+        <div id="parent_36_v1"><button id="id_36">Button 36</button></div>
+        <div class="class_37_v1"><button id="id_37">Button 37</button></div>
+        <div id="parent_38"><span id="sibling_38">Sib</span><button id="id_38">Button 38</button></div>
+        <div id="parent_39"><button id="id_39">Button 39</button></div>
+        <div id="parent_40"><button id="id_40">Button 40</button></div>
+    </div>
+
+    <!-- Group 5: Attribute/Type Changes -->
+    <div class="section" id="group5">
+        <h3>Group 5: Attribute Changes</h3>
+        <button data-testid="test_41" id="id_41">Button 41</button>
+        <input placeholder="Enter text" id="id_42">
+        <button type="submit" id="id_43">Button 43</button>
+        <div role="navigation" id="id_44">Nav 44</div>
+        <button aria-label="Close" id="id_45">X</button>
+        <a href="#" id="id_46">Link 46</a>
+        <input type="button" value="Save" id="id_47">
+        <button title="Tooltip" id="id_48">Button 48</button>
+        <img src="img1.png" alt="Img 49" id="id_49">
+        <img src="img2.png" alt="Profile Pic" id="id_50">
+    </div>
+</body>
+
+</html>

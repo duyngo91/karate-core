@@ -29,7 +29,7 @@ public class SemanticMatcher {
         if (v1.equals(v2))
             return 1.0;
 
-        // Calculate multiple similarity scores
+        // Calculate multiple similarity scores (Lexical)
         double jaroWinkler = jaroWinklerSimilarity(v1, v2);
         double ngram = ngramSimilarity(v1, v2, 2); // bigram
         double lcs = lcsSimilarity(v1, v2);
@@ -37,13 +37,74 @@ public class SemanticMatcher {
         double substring = substringScore(v1, v2);
 
         // Weighted combination (tuned for attribute matching)
-        double score = 0.30 * jaroWinkler // Best for typos
+        double lexicalScore = 0.30 * jaroWinkler // Best for typos
                 + 0.25 * ngram // Good for variations
                 + 0.20 * lcs // Good for reordering
                 + 0.15 * token // Good for multi-word
                 + 0.10 * substring; // Bonus for containment
 
-        return Math.min(1.0, score); // Cap at 1.0
+        // Check Mode
+        String mode = core.healing.HealingConfig.getInstance().semanticMode;
+        if ("LEGACY".equalsIgnoreCase(mode)) {
+            return Math.min(1.0, lexicalScore);
+        }
+
+        // HYBRID MODE: Adaptive AI
+        // 1. Fast Path: If Lexical is high, trust it.
+        if (lexicalScore > HIGH_SIMILARITY_THRESHOLD) {
+            return Math.min(1.0, lexicalScore);
+        }
+
+        // 2. Vector Path: Only if inputs look like Natural Language (not simple codes)
+        if (isNaturalLanguage(value1) && isNaturalLanguage(value2)) {
+            try {
+                // Optimization: Skip very short strings
+                if (value1.length() < 3 || value2.length() < 3) {
+                    return lexicalScore;
+                }
+
+                float[] vec1 = core.healing.rag.EmbeddingService.getInstance().embed(value1);
+                float[] vec2 = core.healing.rag.EmbeddingService.getInstance().embed(value2);
+
+                if (vec1.length > 0 && vec2.length > 0) {
+                    double vectorScore = cosineSimilarity(vec1, vec2);
+                    // Return the best of both worlds
+                    return Math.max(lexicalScore, vectorScore);
+                }
+            } catch (Exception e) {
+                core.platform.utils.Logger.warn("Hybrid Semantic match failed: " + e.getMessage());
+            }
+        }
+
+        return Math.min(1.0, lexicalScore); // Cap at 1.0
+    }
+
+    private static boolean isNaturalLanguage(String s) {
+        // Simple heuristic: Contains spaces OR is camelCase but not
+        // snake_case/kebab-case
+        // We want to avoid running AI on "btn_Submit_2" if possible, but "Login Button"
+        // is good.
+        // Actually, AI is good for "Login" vs "Sign In".
+        // Let's filter out things that are definitely CODES.
+        // If it starts with a number or contains many underscores, maybe skip?
+        // For now, allow most things except very obvious codes like "v-29384".
+        if (s.matches("^v-[a-f0-9]+$"))
+            return false; // Vue hashes
+        if (s.matches("^[0-9]+$"))
+            return false; // Pure numbers
+        return true;
+    }
+
+    private static double cosineSimilarity(float[] v1, float[] v2) {
+        if (v1.length != v2.length)
+            return 0.0;
+        double dot = 0.0, normA = 0.0, normB = 0.0;
+        for (int i = 0; i < v1.length; i++) {
+            dot += v1[i] * v2[i];
+            normA += v1[i] * v1[i];
+            normB += v2[i] * v2[i];
+        }
+        return (normA == 0 || normB == 0) ? 0.0 : dot / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
     private static double jaroWinklerSimilarity(String s1, String s2) {

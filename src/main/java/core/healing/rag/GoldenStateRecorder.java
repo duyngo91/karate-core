@@ -38,8 +38,6 @@ public class GoldenStateRecorder {
 
         try {
             System.err.println("DEBUG: Attempting to capture Golden State for " + elementId);
-            // JS to extract details
-            // JS to extract details
             String js = "(function() { " +
                     "var el = null;" +
                     "if (arguments[0].startsWith('/')) {" +
@@ -53,12 +51,14 @@ public class GoldenStateRecorder {
                     "for (var i = 0; i < el.attributes.length; i++) {" +
                     "  attrs[el.attributes[i].name] = el.attributes[i].value;" +
                     "}" +
+                    "var rect = el.getBoundingClientRect();" +
                     "var prev = el.previousElementSibling;" +
                     "return {" +
                     "  tagName: el.tagName.toLowerCase()," +
                     "  text: el.textContent ? el.textContent.substring(0, 200).trim() : ''," +
                     "  attributes: attrs," +
-                    "  neighborText: prev ? (prev.textContent ? prev.textContent.trim() : '') : ''" +
+                    "  neighborText: prev ? (prev.textContent ? prev.textContent.trim() : '') : ''," +
+                    "  x: rect.left, y: rect.top, w: rect.width, h: rect.height" +
                     "};" +
                     "})();";
 
@@ -94,6 +94,15 @@ public class GoldenStateRecorder {
                     }
                     meta.setAttributes(attrs);
                 }
+
+                if (data.get("x") instanceof Number)
+                    meta.setX(((Number) data.get("x")).intValue());
+                if (data.get("y") instanceof Number)
+                    meta.setY(((Number) data.get("y")).intValue());
+                if (data.get("w") instanceof Number)
+                    meta.setWidth(((Number) data.get("w")).intValue());
+                if (data.get("h") instanceof Number)
+                    meta.setHeight(((Number) data.get("h")).intValue());
 
                 // Generate Embedding
                 String context = "Tag: " + meta.getTagName() +

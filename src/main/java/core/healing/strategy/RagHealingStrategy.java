@@ -14,23 +14,15 @@ public class RagHealingStrategy implements HealingStrategy {
     @Override
     public double score(ElementNode original, ElementNode candidate) {
         // 1. Get Golden State (Metadata + Vector) for the target element
-        // We assume 'original' node carries the ID or we can find it.
-        // But 'original' here is constructed from the broken locator, so it might not
-        // have the ID if extracting failed.
-        // However, SelfHealingDriver passes 'elementId' to 'createTargetNode', so it
-        // should be available via attributes: 'name', 'id' or we need a way to pass
-        // elementId explicitly.
-        // Let's check ElementNode attributes for 'id' or 'name' which acts as a proxy
-        // for key.
+        String key = original.getElementId();
 
-        String key = original.getAttribute("id");
-        if (key == null)
+        // Fallback to name/id if elementId is missing (though it shouldn't be now)
+        if (key == null) {
+            key = original.getAttribute("id");
+        }
+        if (key == null) {
             key = original.getAttribute("name");
-
-        // If we still can't find a key, this strategy relies on GoldenStateRecorder
-        // having recorded it using the same extracted key.
-        // But wait, SelfHealingDriver.createTargetNode adds attributes: field 'name' =
-        // extractKey(elementId).
+        }
 
         if (key == null)
             return 0.0;

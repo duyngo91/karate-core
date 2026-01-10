@@ -15,6 +15,9 @@ public class ElementMetadata {
     private String neighborText; // Text of the previous sibling
     private float[] vector; // Embedding vector (Dimension 384 for MiniLM-L6)
 
+    // Geometric properties (for Location Healing)
+    private int x, y, width, height;
+
     public ElementMetadata() {
     }
 
@@ -83,5 +86,37 @@ public class ElementMetadata {
 
     public void setVector(float[] vector) {
         this.vector = vector;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 }

@@ -17,6 +17,7 @@ public class ElementNode {
     private String parentTag; // Tag of the parent element
     private String prevSiblingTag; // Tag of the previous sibling
     private String prevSiblingText; // Text of the previous sibling
+    private String elementId; // Unique ID for RAG lookup (e.g. "login.username")
 
     public ElementNode() {
     }
@@ -123,6 +124,14 @@ public class ElementNode {
 
     public void setPrevSiblingText(String prevSiblingText) {
         this.prevSiblingText = prevSiblingText;
+    }
+
+    public String getElementId() {
+        return elementId;
+    }
+
+    public void setElementId(String elementId) {
+        this.elementId = elementId;
     }
 
     @Override

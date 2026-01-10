@@ -77,6 +77,8 @@ public class SelfHealingDriver {
 
     private core.healing.model.ElementNode createTargetNode(String elementId, String locator) {
         core.healing.model.ElementNode node = new core.healing.model.ElementNode();
+        node.setElementId(elementId);
+
         // 1. Enrich from ElementId (e.g. "login.username" -> name="username" or
         // text="username")
         String key = extractKey(elementId);

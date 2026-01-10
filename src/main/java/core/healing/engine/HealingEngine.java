@@ -21,17 +21,55 @@ public class HealingEngine {
 
     public HealingEngine() {
         strategies = new ArrayList<>();
-        strategies.add(new ExactAttributeStrategy());
-        strategies.add(new KeyBasedStrategy());
-        strategies.add(new TextBasedStrategy());
-        strategies.add(new CrossAttributeStrategy());
-        strategies.add(new SemanticValueStrategy());
-        strategies.add(new StructuralStrategy());
-        strategies.add(new StructuralStrategy());
-        strategies.add(new NeighborStrategy());
-        strategies.add(new RagHealingStrategy()); // New RAG Strategy
+        List<String> configStrategies = HealingConfig.getInstance().getStrategies();
+
+        if (configStrategies != null && !configStrategies.isEmpty()) {
+            for (String strategyName : configStrategies) {
+                HealingStrategy strategy = createStrategy(strategyName);
+                if (strategy != null) {
+                    strategies.add(strategy);
+                }
+            }
+        } else {
+            // Fallback defaults
+            strategies.add(new ExactAttributeStrategy());
+            strategies.add(new KeyBasedStrategy());
+            strategies.add(new TextBasedStrategy());
+            strategies.add(new CrossAttributeStrategy());
+            strategies.add(new SemanticValueStrategy());
+            strategies.add(new StructuralStrategy());
+            strategies.add(new NeighborStrategy());
+            strategies.add(new LocationHealingStrategy());
+            strategies.add(new RagHealingStrategy());
+        }
 
         Logger.info("Healing Engine initialized with %d strategies", strategies.size());
+    }
+
+    private HealingStrategy createStrategy(String name) {
+        switch (name) {
+            case "ExactAttributeStrategy":
+                return new ExactAttributeStrategy();
+            case "KeyBasedStrategy":
+                return new KeyBasedStrategy();
+            case "TextBasedStrategy":
+                return new TextBasedStrategy();
+            case "CrossAttributeStrategy":
+                return new CrossAttributeStrategy();
+            case "SemanticValueStrategy":
+                return new SemanticValueStrategy();
+            case "StructuralStrategy":
+                return new StructuralStrategy();
+            case "NeighborStrategy":
+                return new NeighborStrategy();
+            case "LocationHealingStrategy":
+                return new LocationHealingStrategy();
+            case "RagHealingStrategy":
+                return new RagHealingStrategy();
+            default:
+                Logger.warn("Unknown strategy in config: %s", name);
+                return null;
+        }
     }
 
     public HealingResult heal(IHealingDriver driver, ElementNode original) {

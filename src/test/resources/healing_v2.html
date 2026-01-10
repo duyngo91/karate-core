@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Healing Test V2 (Broken)</title>
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: blue;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Healing Test V2 (Changes Applied)</h1>
+
+    <!-- Group 1: ID Changes -->
+    <div class="section" id="group1">
+        <h3>Group 1: ID Changes</h3>
+        <!-- 01 Suffix -->
+        <button id="test_01_v2">Button 01</button>
+        <!-- 02 Separator -->
+        <button id="test-02">Button 02</button>
+        <!-- 03 Word swap (not really applicable to number, changing to 'button_test_03') -->
+        <button id="button_test_03">Button 03</button>
+        <!-- 04 Removed underscore -->
+        <button id="test04">Button 04</button>
+        <!-- 05 Case change -->
+        <button id="TEST_05">Button 05</button>
+        <!-- 06 Synonym-ish ID -->
+        <button id="btn_06">Button 06</button>
+        <!-- 07 Abbreviation -->
+        <button id="tst_07">Button 07</button>
+        <!-- 08 Extension -->
+        <button id="test_08_action">Button 08</button>
+        <!-- 09 Typos -->
+        <button id="tset_09">Button 09</button>
+        <!-- 10 Completely new ID but same text/tag -->
+        <button id="new_id_10">Button 10</button>
+    </div>
+
+    <!-- Group 2: Name/Class Changes -->
+    <div class="section" id="group2">
+        <h3>Group 2: Name/Class Changes</h3>
+        <!-- 11 Name change -->
+        <input name="test_user_name_11" value="Input 11">
+        <!-- 12 Name abbreviation -->
+        <input name="test_nm_12" value="Input 12">
+        <!-- 13 Class reordered/changed -->
+        <button class="button primary-btn cls-13" id="legacy_id_13">Button 13</button>
+        <!-- 14 Class semantic change -->
+        <a href="#" class="menu-link selected cls-14" id="legacy_id_14">Link 14</a>
+        <!-- 15 Name semantic -->
+        <input name="zip_code_15" value="Input 15">
+        <!-- 16 Class error -->
+        <div class="error-message cls-16" id="legacy_id_16">Alert 16</div>
+        <!-- 17 Name typo -->
+        <input name="test_nmae_17" value="Input 17">
+        <!-- 18 Class inversion -->
+        <h4 class="title-card cls-18" id="legacy_id_18">Title 18</h4>
+        <!-- 19 Name synonym -->
+        <input name="phone_number_19" value="Input 19">
+        <!-- 20 Class icon change -->
+        <span class="fa fa-cog cls-20" id="legacy_id_20">Icon 20</span>
+    </div>
+
+    <!-- Group 3: Text Changes -->
+    <div class="section" id="group3">
+        <h3>Group 3: Text Changes</h3>
+        <!-- 21 Synonym -->
+        <button id="legacy_id_21">Sign In</button>
+        <!-- 22 Synonym -->
+        <button id="legacy_id_22">Send</button>
+        <!-- 23 Synonym -->
+        <a href="#" id="legacy_id_23">Support</a>
+        <!-- 24 Synonym -->
+        <button id="legacy_id_24">Buy Now</button>
+        <!-- 25 Synonym -->
+        <a href="#" id="legacy_id_25">More Info</a>
+        <!-- 26 Synonym -->
+        <button id="legacy_id_26">Remove</button>
+        <!-- 27 Synonym -->
+        <button id="legacy_id_27">Update Profile</button>
+        <!-- 28 Synonym -->
+        <button id="legacy_id_28">Continue</button>
+        <!-- 29 Synonym -->
+        <button id="legacy_id_29">Back</button>
+        <!-- 30 Synonym -->
+        <a href="#" id="legacy_id_30">Reset Password</a>
+    </div>
+
+    <!-- Group 4: Structural Changes -->
+    <div class="section" id="group4">
+        <h3>Group 4: Structural Changes</h3>
+        <!-- 31 Depth change: Wrapped in span -->
+        <div id="container_31"><span><button id="legacy_id_31">Button 31</button></span></div>
+        <!-- 32 Tag change: li -> div -->
+        <div>
+            <div id="legacy_id_32">Item 32</div>
+        </div>
+        <!-- 33 Parent change: p -> div -->
+        <div><span id="legacy_id_33">Span 33</span></div>
+        <!-- 34 Moved to next sibling -->
+        <div id="parent_34">
+            <div>Sibling</div><button id="legacy_id_34">Button 34</button>
+        </div>
+        <!-- 35 Moved to previous sibling -->
+        <div id="parent_35"><button id="legacy_id_35">Button 35</button>
+            <div>Sibling</div>
+        </div>
+        <!-- 36 Parent ID changed -->
+        <div id="parent_36_v2"><button id="legacy_id_36">Button 36</button></div>
+        <!-- 37 Grandparent class changed -->
+        <div class="class_37_v2"><button id="legacy_id_37">Button 37</button></div>
+        <!-- 38 Sibling removed -->
+        <div id="parent_38"><button id="legacy_id_38">Button 38</button></div>
+        <!-- 39 Sibling added -->
+        <div id="parent_39"><span>New Sib</span><button id="legacy_id_39">Button 39</button></div>
+        <!-- 40 Deep nesting -->
+        <div id="parent_40">
+            <div>
+                <div><button id="legacy_id_40">Button 40</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group 5: Attribute/Type Changes -->
+    <div class="section" id="group5">
+        <h3>Group 5: Attribute Changes</h3>
+        <!-- 41 data-testid change -->
+        <button data-test-id="test_41_v2" id="legacy_id_41">Button 41</button>
+        <!-- 42 placeholder change -->
+        <input placeholder="Type your email address" id="legacy_id_42">
+        <!-- 43 type change -->
+        <button type="button" id="legacy_id_43">Button 43</button>
+        <!-- 44 role change -->
+        <div role="menu" id="legacy_id_44">Nav 44</div>
+        <!-- 45 aria-label change -->
+        <button aria-label="Exit" id="legacy_id_45">X</button>
+        <!-- 46 href change -->
+        <a href="#" id="legacy_id_46">Link 46</a>
+        <!-- 47 value change -->
+        <input type="button" value="Save Changes" id="legacy_id_47">
+        <!-- 48 title change -->
+        <button title="Help Info" id="legacy_id_48">Button 48</button>
+        <!-- 49 src change -->
+        <img src="logo_v2.png" alt="Img 49" id="legacy_id_49">
+        <!-- 50 alt change -->
+        <img src="img2.png" alt="Avatar" id="legacy_id_50">
+    </div>
+</body>
+
+</html>
