@@ -1,6 +1,6 @@
 Feature: Login to OrangeHRM
 
-  @test
+  @test-1
   Scenario: Successful Login
     * configure driver = driverConfig
     * driver demoUrl

@@ -16,7 +16,7 @@ public class ExactAttributeStrategy implements HealingStrategy {
         double score = 0;
         int attributeCount = 0;
 
-        // Check all identity attributes from old element
+        // Check identity attributes
         if (original.getAttributes() != null) {
             for (Map.Entry<String, String> entry : original.getAttributes().entrySet()) {
                 String attrName = entry.getKey();
@@ -25,18 +25,28 @@ public class ExactAttributeStrategy implements HealingStrategy {
 
                 if (oldValue != null && newValue != null) {
                     double attrSim = SimilarityUtil.similarity(oldValue, newValue);
+
+                    // ✅ STRONG SIGNAL → STOP
+                    if (attrSim >= 0.95) {
+                        return 0.95;
+                    }
+
                     score += attrSim;
                     attributeCount++;
                 }
             }
         }
 
-        // Add text similarity
+        // Text similarity
         double textSim = SimilarityUtil.similarity(original.getText(), candidate.getText());
-        score += textSim * 2; // Weight text higher
+        if (textSim >= 0.95) {
+            return 0.95;
+        }
+
+        score += textSim * 2;
         attributeCount += 2;
 
-        // Add class similarity
+        // Class similarity
         String oldClass = original.getAttribute("class");
         String newClass = candidate.getAttribute("class");
         if (oldClass != null && newClass != null) {
@@ -47,6 +57,7 @@ public class ExactAttributeStrategy implements HealingStrategy {
 
         return attributeCount > 0 ? score / attributeCount : 0;
     }
+
 
     @Override
     public String getName() {

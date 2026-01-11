@@ -16,7 +16,7 @@ class RunTest {
         String path = System.getProperty("karate.path", "src/test/java/web/features");
         Results results = Runner
                 .path(path)
-                .tags("@test-visual-healing")
+                .tags("@healing")
                 .outputCucumberJson(true)
                 .outputHtmlReport(true)
                 .debugMode(true)

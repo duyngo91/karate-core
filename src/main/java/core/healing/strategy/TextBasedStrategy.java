@@ -53,7 +53,15 @@ public class TextBasedStrategy implements HealingStrategy {
         // Apply tag weight
         double tagWeight = calculateTagWeight(original.getTagName(), candidateTag);
 
-        return textScore * tagWeight;
+        double finalScore = textScore * tagWeight;
+
+        // ✅ TEXT RÕ RÀNG → QUYẾT LUÔN
+        if (finalScore >= 0.85) {
+            return 0.85;
+        }
+
+        return finalScore;
+
     }
 
     private boolean isTextTag(String tag) {

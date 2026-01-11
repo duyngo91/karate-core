@@ -15,9 +15,10 @@ public class HealingConfig {
 
     // Constants used by V2 strategies
     public static final double HEALING_THRESHOLD = 0.5;
+    public static final double VISUAL_THRESHOLD = 0.8;
     public static final boolean ENABLE_DEBUG_LOGGING = true;
     public static final boolean ENABLE_PERFORMANCE_LOGGING = false;
-    public static final int MAX_CANDIDATES = 50;
+    public static final int MAX_CANDIDATES = 100;
 
     @JsonProperty("enabled")
     public boolean enabled = true;
@@ -90,13 +91,13 @@ public class HealingConfig {
         // Default Strategies
         config.strategies.add("ExactAttributeStrategy");
         config.strategies.add("KeyBasedStrategy");
-        config.strategies.add("TextBasedStrategy");
+        config.strategies.add("StructuralStrategy");
         config.strategies.add("CrossAttributeStrategy");
-        config.strategies.add("SemanticValueStrategy");
-        config.strategies.add("StructuralStrategy"); // Removed duplicate
+        config.strategies.add("TextBasedStrategy");
         config.strategies.add("NeighborStrategy");
-        config.strategies.add("LocationHealingStrategy");
+        config.strategies.add("SemanticValueStrategy");
         config.strategies.add("RagHealingStrategy");
+        config.strategies.add("VisualHealingStrategy");
 
         // Save default config for user to edit
         saveConfig(config);

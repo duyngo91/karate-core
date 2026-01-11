@@ -17,7 +17,7 @@ public class CandidateFinder {
         // Extended tag list for better coverage
         String js = "(function() {" +
                 "  var results = [];" +
-                "  var tags = ['button', 'a', 'input', 'select', 'textarea', 'label', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'img', 'li', 'td'];"
+                "  var tags = ['button', 'a', 'input', 'select', 'textarea', 'label', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'];"
                 +
                 "  var elements = document.querySelectorAll(tags.join(','));" +
                 "  for (var i = 0; i < elements.length; i++) {" +

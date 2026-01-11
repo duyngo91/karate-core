@@ -46,6 +46,11 @@ public class KeyBasedStrategy implements HealingStrategy {
                         // Use KeyNormalizer for intelligent comparison
                         double keySim = KeyNormalizer.keySimilarity(oldAttrValue, candidateAttrValue);
                         bestMatch = Math.max(bestMatch, keySim);
+
+                        // ✅ STRONG KEY MATCH
+                        if (bestMatch >= 0.9) {
+                            return 0.9;
+                        }
                     }
                 }
             }

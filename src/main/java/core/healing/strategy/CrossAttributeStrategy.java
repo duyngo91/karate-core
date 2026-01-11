@@ -46,10 +46,16 @@ public class CrossAttributeStrategy implements HealingStrategy {
                 }
             }
 
+            // ✅ STRONG CROSS-ATTRIBUTE MATCH
+            if (bestMatch >= 0.9) {
+                return 0.9;
+            }
+
             if (bestMatch > 0) {
                 totalScore += bestMatch;
                 matchCount++;
             }
+
         }
 
         // Add text similarity bonus

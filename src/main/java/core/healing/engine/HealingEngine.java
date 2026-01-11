@@ -3,14 +3,13 @@ package core.healing.engine;
 import core.healing.HealingConfig;
 import core.healing.IHealingDriver;
 import core.healing.model.ElementNode;
+import core.healing.model.ElementScore;
 import core.healing.model.HealingResult;
+import core.healing.model.StrategyMatch;
 import core.healing.strategy.*;
 import core.platform.utils.Logger;
 
-import java.util.ArrayList;
-
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Core healing engine that orchestrates the multi-strategy healing process.
@@ -75,69 +74,103 @@ public class HealingEngine {
     }
 
     public HealingResult heal(IHealingDriver driver, ElementNode original) {
+
         long startTime = System.currentTimeMillis();
 
-        // Find candidates
         List<ElementNode> candidates = CandidateFinder.findCandidates(driver);
-
-        // Limit candidates if too many (though we already filtered in JS, this is extra
-        // safety)
         if (candidates.size() > HealingConfig.MAX_CANDIDATES) {
             candidates = candidates.subList(0, HealingConfig.MAX_CANDIDATES);
         }
 
-        Logger.debug("Found %d candidates for healing", candidates.size());
+        Map<ElementNode, ElementScore> scoreMap = new HashMap<>();
 
-        ElementNode bestElement = null;
-        double bestWeightedScore = 0.0;
-        String bestStrategy = "None";
-
+        // ===== PHASE 1: NON-VISUAL STRATEGIES =====
         for (ElementNode candidate : candidates) {
+            ElementScore elementScore = new ElementScore(candidate);
+
             for (HealingStrategy strategy : strategies) {
-                try {
-                    double rawScore = strategy.score(original, candidate);
-                    /***
-                     * Trọng số của chiến lược đã được loại bỏ để đánh giá công bằng hơn giữa các chiến lược.
-                     * Nếu cần, có thể thêm lại trọng số sau này.
-                     * Mục đích của trong số là chọn ra chiến lược nào ưu tiên nhưng nó cũng làm ảnh hướng của chiến lược đó với mức HEALING_THRESHOLD
-                     * vd như so sanh bằng hình là 0.9 * với trong số 0.3 thì lúc nào cũng dưới HEALING_THRESHOLD
-                     *
-                     * Đầu tư tiên, chúng ta cần đánh giá hiệu quả của từng chiến lược một cách riêng biệt trước khi áp dụng trọng số, có vượt qua HEALING_THRESHOLD
-                     * Sau đó những chiến lược nào đã vượt qua HEALING_THRESHOLD rồi thì dùng trọng số để xem nên chọn cái nào nhất
-                     */
+                if (strategy instanceof VisualHealingStrategy) continue;
 
-                    //double weightedScore = rawScore * strategy.getWeight();
-                    double weightedScore = rawScore;
+                double raw = strategy.score(original, candidate);
+                double weighted = raw * strategy.getWeight();
 
-                    if (weightedScore > bestWeightedScore) {
-                        bestWeightedScore = weightedScore;
-                        bestElement = candidate;
-                        bestStrategy = strategy.getName();
-                    }
-                } catch (Exception e) {
-                    Logger.error("Error scoring candidate with strategy %s: %s", strategy.getName(), e.getMessage());
+                StrategyMatch match = new StrategyMatch(
+                        candidate, strategy, raw, weighted
+                );
+                elementScore.matches.add(match);
+
+                // ✔ PASS chỉ là signal phụ
+                if (raw >= HealingConfig.HEALING_THRESHOLD) {
+                    elementScore.passCount++;
+                }
+
+                // ✔ LUÔN cộng weighted score
+                elementScore.totalWeightedScore += weighted;
+
+                // ✔ Track cú đánh mạnh nhất
+                elementScore.bestRawScore =
+                        Math.max(elementScore.bestRawScore, raw);
+            }
+
+            scoreMap.put(candidate, elementScore);
+        }
+
+        // ===== PHASE 2: CHOOSE BEST ELEMENT (EVIDENCE-BASED) =====
+        List<ElementScore> sorted = scoreMap.values()
+                .stream()
+                .sorted(Comparator
+                        .comparingDouble((ElementScore e) -> e.totalWeightedScore).reversed()
+                        .thenComparingDouble(e -> e.bestRawScore).reversed()
+                        .thenComparingInt(e -> e.passCount).reversed()
+                )
+                .toList();
+
+        if (!sorted.isEmpty()) {
+            ElementScore best = sorted.get(0);
+
+            // Optional safety check
+            if (best.bestRawScore >= HealingConfig.HEALING_THRESHOLD) {
+                return best.getHealingResult();
+            }
+        }
+
+        // ===== PHASE 3: VISUAL FALLBACK (CHOOSE BEST, NOT FIRST) =====
+        Logger.warn("DOM healing failed. Trying visual healing...");
+
+        ElementNode bestVisual = null;
+        double bestVisualScore = 0;
+        HealingStrategy bestVisualStrategy = null;
+
+        for (HealingStrategy strategy : strategies) {
+            if (!(strategy instanceof VisualHealingStrategy)) continue;
+
+            for (ElementNode candidate : candidates) {
+                double raw = strategy.score(original, candidate);
+                if (raw > bestVisualScore) {
+                    bestVisualScore = raw;
+                    bestVisual = candidate;
+                    bestVisualStrategy = strategy;
                 }
             }
         }
 
-        long duration = System.currentTimeMillis() - startTime;
-        Logger.info("Healing analysis completed in %dms", duration);
-
-        if (bestWeightedScore >= HealingConfig.HEALING_THRESHOLD && bestElement != null) {
-            // Reconstruct locator for the best element
-            // We need to build a robust locator for the found element to return it
-            bestElement.setLocator(constructLocator(bestElement));
-
-            Logger.info("Healing SUCCESS. Score: %.2f, Strategy: %s, Locator: %s",
-                    bestWeightedScore, bestStrategy, bestElement.getLocator());
-
-            return new HealingResult(bestElement, bestWeightedScore, bestStrategy);
+        if (bestVisual != null && bestVisualScore >= HealingConfig.VISUAL_THRESHOLD) {
+            bestVisual.setLocator(constructLocator(bestVisual));
+            return new HealingResult(
+                    bestVisual,
+                    bestVisualScore,
+                    bestVisualStrategy.getName()
+            );
         }
 
-        Logger.warn("Healing FAILED. Best score: %.2f (Threshold: %.2f)", bestWeightedScore,
-                HealingConfig.HEALING_THRESHOLD);
-        return HealingResult.failure();
+        // ===== PHASE 4: LAST RESORT (BEST DOM GUESS) =====
+        sorted.forEach(System.out::println);
+
+        return !sorted.isEmpty()
+                ? sorted.get(0).getHealingResult()
+                : HealingResult.failure();
     }
+
 
     private String constructLocator(ElementNode node) {
         // Try id

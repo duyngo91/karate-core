@@ -24,7 +24,7 @@ Feature: 50 Healing Test Cases
     LocatorMapper.getInstance().buildIndex();
     """
 
-  @test
+  @test-50
   Scenario: Run 50 Healing Scenarios
     # 1. Open V1 and Capture Golden State
     * driver 'file:///e:/Project/auto/karate-fw/karate-core/src/test/resources/healing_v1.html'

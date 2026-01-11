@@ -1,7 +1,7 @@
 {
   "loginPage": {
-    "txtUserName": "//input[@name='username']",
-    "txtPassword": "//input[@name='password']",
+    "txtUserName": "//input[@name='usertest']",
+    "txtUnknown": "//input[@name='pass']",
     "btnSubmit": "//button[@type='submit' and contains(@class, 'oxd-button--main')]"
   }
 }

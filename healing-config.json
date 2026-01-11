@@ -7,12 +7,11 @@
     "strategies": [
         "ExactAttributeStrategy",
         "KeyBasedStrategy",
-        "TextBasedStrategy",
-        "CrossAttributeStrategy",
-        "SemanticValueStrategy",
         "StructuralStrategy",
+        "CrossAttributeStrategy",
+        "TextBasedStrategy",
         "NeighborStrategy",
-        "LocationHealingStrategy",
+        "SemanticValueStrategy",
         "RagHealingStrategy",
         "VisualHealingStrategy"
     ]

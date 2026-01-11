@@ -1,5 +1,6 @@
 package core.healing.model;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -145,8 +146,57 @@ public class ElementNode {
         this.screenshot = screenshot;
     }
 
+    public void genLocator() {
+        this.setLocator(constructLocator(this));
+    }
+
+
     @Override
     public String toString() {
         return String.format("<%s> %s %s", tagName, attributes, text != null ? text : "");
     }
+
+    private String constructLocator(ElementNode node) {
+        // Try id
+        String id = node.getAttribute("id");
+        if (id != null && !id.isEmpty())
+            return "//*[@id='" + id + "']";
+
+        // Try name
+        String name = node.getAttribute("name");
+        if (name != null && !name.isEmpty())
+            return "//*[@name='" + name + "']";
+
+        // Try text
+        if (node.getText() != null && !node.getText().isEmpty()) {
+            // Simplified text locator
+            String text = node.getText().length() > 20 ? node.getText().substring(0, 20) : node.getText();
+            return "//" + node.getTagName() + "[contains(text(), '" + text + "')]";
+        }
+
+        // Try Neighbor Context (if available and strong)
+        if (node.getPrevSiblingText() != null && !node.getPrevSiblingText().isEmpty()
+                && node.getPrevSiblingTag() != null) {
+            // Heuristic: If we are here, ID/Name/Text strategies likely failed.
+            // Construct: //prevTag[contains(text(),'prevText')]/following-sibling::tag[1]
+            String prevText = node.getPrevSiblingText().length() > 20 ? node.getPrevSiblingText().substring(0, 20)
+                    : node.getPrevSiblingText();
+            // Escape single quotes just in case
+            prevText = prevText.replace("'", "\'");
+
+            return "//" + node.getPrevSiblingTag() + "[contains(text(), '" + prevText + "')]/following-sibling::"
+                    + node.getTagName() + "[1]";
+        }
+
+        // Fallback to internal xpath if we had one, or attributes
+        for (Map.Entry<String, String> entry : node.getAttributes().entrySet()) {
+            if (!entry.getKey().equals("class") && !entry.getKey().equals("style")) {
+                return "//" + node.getTagName() + "[@" + entry.getKey() + "='" + entry.getValue() + "']";
+            }
+        }
+
+        return "//" + node.getTagName(); // Weak fallback
+    }
+
+
 }
