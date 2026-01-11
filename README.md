@@ -48,19 +48,22 @@ src/main/java/core/
 
 ## 🛠️ Configuration
 
-The healing behavior can be managed via `healing-config.json`:
-```json
-{
-  "enabled": true,
-  "captureGoldenState": true,
-  "semanticMode": "HYBRID",
-  "strategies": [
-    "ExactAttributeStrategy",
-    "TextBasedStrategy",
-    "RagHealingStrategy",
-    "StructuralStrategy"
-  ]
-}
+The healing behavior can be managed via `healing-config.yml`:
+```yaml
+# Self-healing switch
+enabled: true
+
+# Advanced modes
+captureGoldenState: true
+semanticMode: "HYBRID"
+healingMode: "SAFE" # Options: SAFE, RECKLESS
+
+# Strategies ordered by importance
+strategies:
+  - ExactAttributeStrategy
+  - TextBasedStrategy
+  - RagHealingStrategy
+  - StructuralStrategy
 ```
 
 ## 📊 Documentation

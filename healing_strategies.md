@@ -49,10 +49,12 @@ $$Confidence = (45\% \times Mean) + (35\% \times Max) + (20\% \times PassRatio)$
 
 ## ⚙️ 4. Tùy chỉnh (Tuning Guide)
 
-Bạn có thể điều chỉnh tỷ lệ 45-35-20 trong `ElementScore.java` tùy theo môi trường:
+Bạn có thể điều chỉnh chế độ hoạt động trong `healing-config.yml`:
 
-*   **Chế độ An toàn (45% Mean / 35% Max)**: Dùng khi Web ổn định, muốn tránh tối đa việc chọn nhầm phần tử.
-*   **Chế độ Liều lĩnh (35% Mean / 45% Max)**: Dùng khi Web đổi UI liên tục, muốn hệ thống "lỳ lợm" hơn để cứu các case test khó.
+*   **Chế độ An toàn (healingMode: SAFE)**: (Mặc định) Ưu tiên sự ổn định cao nhất, bắt buộc AI phải kiểm tra nhiều yếu tố (45% Mean / 35% Max).
+*   **Chế độ Liều lĩnh (healingMode: RECKLESS)**: Ưu tiên sự nhạy bén, tin tưởng vào dấu hiệu tốt nhất còn sót lại (35% Mean / 45% Max).
+
+Bạn cũng có thể thay đổi nhanh qua command line: `-Dhealing.mode=RECKLESS`.
 
 ---
 *Tài liệu này được cập nhật để phản ánh trạng thái tối ưu nhất của Healing Engine hiện tại.*

@@ -1,0 +1,42 @@
+# Self-healing Configuration (YAML)
+# This file controls the AI-powered healing engine for stable tests.
+
+# Main switch for the self-healing system
+enabled: true
+
+# Whether to capture the 'Golden State' of successful elements (for RAG/History)
+captureGoldenState: false
+
+# Enable semantic-based matching strategies
+semanticEnabled: true
+
+# In-memory cache for speed (Global for the current JVM run)
+cacheEnabled: false
+
+# RAG (Retrieval-Augmented Generation) based healing
+ragEnabled: false
+
+# Semantic strategy mode: 
+# - LEGACY: Previous algorithm
+# - HYBRID: Advanced combination (Recommended)
+semanticMode: "HYBRID"
+
+# Confidence Calculation Mode:
+# - SAFE: Prioritizes overall stability (Mean > Max). Best for stable sites.
+# - RECKLESS: Prioritizes the best single indicator (Max > Mean). Best for high-refactor sites.
+healingMode: "SAFE"
+
+# Where to look for/store locator metadata
+locatorPath: "src/test/java/web/locators"
+
+# Active strategies ordered by execution priority
+strategies:
+  - ExactAttributeStrategy
+  - KeyBasedStrategy
+  - StructuralStrategy
+  - CrossAttributeStrategy
+  - TextBasedStrategy
+  - NeighborStrategy
+  - SemanticValueStrategy
+  - RagHealingStrategy
+  - VisualHealingStrategy

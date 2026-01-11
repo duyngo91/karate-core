@@ -76,7 +76,7 @@ public class HealingEngine {
 
             if (!elementScore.matches.isEmpty()) {
                 scoreMap.put(candidate, elementScore);
-                if (elementScore.getConfidence() > 0.35) {
+                if (elementScore.getConfidence() > HealingConfig.CONFIDENCE_WEAK) {
                     Logger.debug("[Healing] Potential: %s (Conf: %.2f)",
                             candidate.getTagName(), elementScore.getConfidence());
                 }

@@ -88,11 +88,21 @@ public class ElementScore {
                 totalStrategies == 0 ? 0 :
                         (double) passCount / totalStrategies;
 
-        // Tính công thức Hybrid (35-45-20 - Chế độ "Liều lĩnh" nhạy bén hơn)
-        confidence =
-                0.35 * clamp(normalizedWeighted) +
-                        0.45 * clamp(bestRawScore) +
-                        0.20 * clamp(passRatio);
+        // Tính công thức Hybrid dựa trên mode
+        String mode = HealingConfig.getInstance().getHealingMode();
+        if ("RECKLESS".equals(mode)) {
+            // Mode "Liều lĩnh" (35-45-20): Tin vào bestRawScore hơn (nhạy bén hơn nhưng dễ sai hơn)
+            confidence =
+                    0.35 * clamp(normalizedWeighted) +
+                    0.45 * clamp(bestRawScore) +
+                    0.20 * clamp(passRatio);
+        } else {
+            // Mode "An toàn" (45-35-20): Tin vào normalizedWeighted hơn (ổn định hơn)
+            confidence =
+                    0.45 * clamp(normalizedWeighted) +
+                    0.35 * clamp(bestRawScore) +
+                    0.20 * clamp(passRatio);
+        }
 
         // 👇 SCALE CUỐI – Kiểm tra tư cách phần tử (Role/Tag)
         confidence *= clamp(roleScore);

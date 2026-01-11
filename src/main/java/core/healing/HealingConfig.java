@@ -2,6 +2,7 @@ package core.healing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import core.platform.utils.Logger;
 
 import java.io.File;
@@ -11,7 +12,8 @@ import java.util.List;
 
 public class HealingConfig {
     private static HealingConfig instance;
-    private static final String CONFIG_PATH = "healing-config.json";
+    private static final String CONFIG_PATH = "healing-config.yml";
+    private static final String LEGACY_CONFIG_PATH = "healing-config.json";
 
     // Constants used by V2 strategies
     public static final double CONFIDENCE_STRONG = 0.75;
@@ -41,6 +43,9 @@ public class HealingConfig {
 
     @JsonProperty("semanticMode")
     public String semanticMode = "HYBRID"; // Options: "LEGACY", "HYBRID"
+
+    @JsonProperty("healingMode")
+    public String healingMode = "SAFE"; // Options: "SAFE", "RECKLESS"
 
     @JsonProperty("locatorPath")
     public String locatorPath = "src/test/java/web/locators";
@@ -80,6 +85,11 @@ public class HealingConfig {
         return prop != null ? "true".equalsIgnoreCase(prop) : semanticEnabled;
     }
 
+    public String getHealingMode() {
+        String prop = System.getProperty("healing.mode");
+        return prop != null ? prop.toUpperCase() : (healingMode != null ? healingMode.toUpperCase() : "SAFE");
+    }
+
     public String getLocatorPath() {
         String prop = System.getProperty("locator.path");
         return prop != null ? prop : locatorPath;
@@ -90,16 +100,29 @@ public class HealingConfig {
     }
 
     private static HealingConfig loadConfig() {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new YAMLMapper();
         File configFile = new File(CONFIG_PATH);
+        File legacyFile = new File(LEGACY_CONFIG_PATH);
+
         if (configFile.exists()) {
             try {
                 return mapper.readValue(configFile, HealingConfig.class);
             } catch (IOException e) {
-                Logger.error("Failed to load healing-config.json: %s. Using defaults.", e.getMessage());
+                Logger.error("Failed to load healing-config.yml: %s. Using defaults.", e.getMessage());
+            }
+        } else if (legacyFile.exists()) {
+            Logger.info("Found legacy healing-config.json. Converting to YAML...");
+            try {
+                ObjectMapper jsonMapper = new ObjectMapper();
+                HealingConfig config = jsonMapper.readValue(legacyFile, HealingConfig.class);
+                saveConfig(config); // Save as YAML
+                // Should we delete JSON? Done later in workflow
+                return config;
+            } catch (IOException e) {
+                Logger.error("Failed to convert legacy healing-config.json: %s", e.getMessage());
             }
         } else {
-            Logger.info("healing-config.json not found. Creating default configuration.");
+            Logger.info("healing-config.yml not found. Creating default configuration.");
             return createDefaultConfig();
         }
         return createDefaultConfig();
@@ -127,9 +150,10 @@ public class HealingConfig {
 
     private static void saveConfig(HealingConfig config) {
         try {
-            new ObjectMapper().writerWithDefaultPrettyPrinter().writeValue(new File(CONFIG_PATH), config);
+            new YAMLMapper().writerWithDefaultPrettyPrinter().writeValue(new File(CONFIG_PATH), config);
+            Logger.info("Saved healing configuration to: %s", CONFIG_PATH);
         } catch (IOException e) {
-            Logger.error("Failed to save default healing-config.json: %s", e.getMessage());
+            Logger.error("Failed to save healing-config.yml: %s", e.getMessage());
         }
     }
 }
