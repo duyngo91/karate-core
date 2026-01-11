@@ -14,12 +14,13 @@ class RunTest {
     public void run() {
 
         String path = System.getProperty("karate.path", "src/test/java/web/features");
+        String tags = System.getProperty("karate.tags", "@strategy-semantic");
         Results results = Runner
                 .path(path)
-                .tags("@abc")
+                .tags(tags)
                 .outputCucumberJson(true)
                 .outputHtmlReport(true)
-                .debugMode(true)
+                .debugMode(false)
                 .systemProperty("karate.env", "sit")
                 .customDrivers(DriverFactory.getDrivers())
                 .parallel(1);

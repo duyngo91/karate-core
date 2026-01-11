@@ -37,7 +37,7 @@ public class SelfHealingDriver {
             return originalLocator;
         }
 
-        // Try learning-based prediction (Golden State Cache)
+        // Try learning-based prediction (Golden State Persistent Cache)
         String learnedLocator = tryLearningBased(elementId);
         if (learnedLocator != null) {
             monitor.recordEvent(elementId, originalLocator, learnedLocator, "Learning", 1.0, true);

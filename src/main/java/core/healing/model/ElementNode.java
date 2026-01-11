@@ -171,7 +171,7 @@ public class ElementNode {
 
     @Override
     public String toString() {
-        return String.format("<%s> %s %s %s", tagName, attributes, formId, text != null ? text : "");
+        return String.format("<%s> %s %s", tagName, attributes, text != null ? text : "");
     }
 
     private String constructLocator(ElementNode node) {

@@ -7,6 +7,10 @@ public class HealingInitializer {
     private static boolean initialized = false;
 
     public static void autoInit() {
+        if (initialized) {
+            return;
+        }
+
         HealingConfig config = HealingConfig.getInstance();
 
         if (config.isEnabled()) {
@@ -22,6 +26,8 @@ public class HealingInitializer {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 HealingMonitor.getInstance().generateReport();
             }));
+
+            initialized = true;
         }
     }
 
@@ -59,13 +65,7 @@ public class HealingInitializer {
             LocatorMapper mapper = LocatorMapper.getInstance();
             mapper.buildIndex();
             
-            Logger.info("[Healing] Loaded %d entries into Mapper index.", mapper.getSize());
             
-            if (!initialized) {
-                // Initialized flag
-                initialized = true;
-            }
-
             Logger.debug("Loaded locators from: %s", locatorJsonPath);
         } catch (Exception e) {
             Logger.error("Failed to load locators: %s", e.getMessage());
