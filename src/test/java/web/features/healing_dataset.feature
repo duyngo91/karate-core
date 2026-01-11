@@ -4,25 +4,6 @@ Feature: 50 Healing Test Cases
   Background:
     * configure driver = { type: 'ChromeCustom', showDriverLog: true }
     # Enable Healing
-    * configure afterScenario = function(){ karate.call('classpath:helpers/after_scenario.feature') }
-    * eval
-    """
-    // Force enable healing and golden state capture
-    var HealingConfig = Java.type('core.healing.HealingConfig');
-    HealingConfig.getInstance().enabled = true;
-    HealingConfig.getInstance().captureGoldenState = true;
-    HealingConfig.getInstance().semanticEnabled = true;
-
-    // Manually load locators to ensure they are managed
-    var LocatorRepository = Java.type('core.healing.LocatorRepository');
-    var LocatorMapper = Java.type('core.healing.LocatorMapper');
-    // Ensure absolute path or correct relative path
-    var File = Java.type('java.io.File');
-    var path = new File('src/test/java/web/locators/healing_locators.json').getAbsolutePath();
-    karate.log('Loading locators from: ' + path);
-    LocatorRepository.getInstance().loadFromFile(path);
-    LocatorMapper.getInstance().buildIndex();
-    """
 
   @test-50
   Scenario: Run 50 Healing Scenarios

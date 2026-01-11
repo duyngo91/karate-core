@@ -1,99 +1,58 @@
-# Healing Strategies Documentation
+# 🏥 Healing Strategies Documentation
 
-This document explains the **9 healing strategies** used in the framework's self-healing engine. The engine uses a "Hybrid" approach, combining the speed of the original framework with the intelligence of Advanced Healing.
-
-## Overview
-
-When the framework fails to find an element with the original specific locator (e.g., `//input[@id='username']`), it automatically triggers the **Healing Engine**. The engine analyzes the entire page and scores all potential candidate elements against the *metadata* of the missing element.
-
-The candidates are scored using the following strategies:
-
-| Strategy | Name | Weight | Description |
-| :--- | :--- | :--- | :--- |
-| **1** | **ExactAttribute** | `1.00` | Matches exact attribute values (e.g., `id="user"` matches `id="user"`). |
-| **2** | **Location** | `0.60` | **[NEW]** Matches based on geometric proximity (x,y coordinates) compared to the last recorded "Golden State". |
-| **3** | **KeyBased** | `0.95` | Matches logical keys in different casing (e.g., `txtUsername` matches `username`). |
-| **4** | **TextBased** | `0.92` | Matches visible text content, even across different tags (e.g., `Label` matches `Span`). |
-| **5** | **CrossAttribute** | `0.90` | Matches values across different attributes (e.g., `name="user"` matches `id="user"`). |
-| **6** | **RAG (Semantic)** | `0.95` | **[NEW]** Matches using AI Vectors. Finds elements with similar "meaning" (text, label, context) even if attributes change. |
-| **7** | **SemanticValue** | `0.85` | Matches similar strings using fuzzy matching (e.g., `Log In` matches `Sign In`). |
-| **8** | **Neighbor** | `0.80` | Matches based on surrounding elements (e.g., Input next to "Password" Label). |
-| **9** | **Structural** | `0.75` | Matches based on DOM structure (depth, parent tag) when attributes fail. |
+Tài liệu này giải thích chi tiết về **9 chiến thuật chữa lỗi (Strategies)** và công thức tính toán độ tin cậy được sử dụng trong hệ thống Self-Healing của Karate Framework.
 
 ---
 
-## Detailed Explanations
+## 📊 1. Danh sách các Strategy & Trọng số (Weights)
 
-### 1. ExactAttribute Strategy (Weight: 1.0)
-**The Precision Master.**
-Looks for elements that have the **SAME attribute name** with the **SAME value**.
-*   **Logic**: "If it looked like a duck before, it's probably still a duck."
-*   **Result**: High match on `id`, `name`, or `data-testid`.
+Hệ thống sử dụng cơ chế chấm điểm đa tầng để tìm ra ứng cử viên đúng nhất. Trọng số (Weight) thể hiện mức độ ưu tiên của Strategy đó.
 
-### 2. Location Healing Strategy (Weight: 0.6)
-**The Geographer.**
-Uses the `x, y, width, height` coordinates from the stored "Golden State" to find an element that is in the *exact same position* as before.
-*   **Logic**: "It looks different, but it's in the same spot."
-*   **Benefit**: Extremely useful when IDs change but the layout is stable.
-*   **Note**: Works independently from RAG to avoid polluting semantic vectors with coordinates.
-
-### 3. KeyBased Strategy (Weight: 0.95)
-**The Developer Mind Reader.**
-Normalizes naming conventions (prefixes like `btn`, `txt`, `lbl` or casing like `camelCase`, `snake_case`) to find logical matches.
-*   **Logic**: `txtUsername` == `user_name` == `UserName` == `username`.
-*   **Example**: `name="txtFirstName"` matches `id="firstName"`.
-
-### 4. TextBased Strategy (Weight: 0.92)
-**The Visual Matcher.**
-For elements like Buttons, Links, and Labels, the text usually remains stable even if the underlying ID or Class changes.
-*   **Logic**: "If it says 'Save', it's the Save button."
-*   **Example**: `<button>Submit</button>` matches `<a class="btn">Submit</a>`.
-
-### 5. CrossAttribute Strategy (Weight: 0.90)
-**The Attribute Swapper.**
-Checks "Identity" attributes against each other, assuming values might shift (e.g., from `name` to `id`).
-*   **Logic**: `name="user_email"` matches `data-testid="user_email"`.
-
-### 6. RAG (RagHealingStrategy) (Weight: 0.95)
-**The AI Brain.**
-Uses Vector Embeddings (MiniLM Model) to understand the *meaning* of an element.
-*   **Input**: Tag Name, Visible Text, Attribute Values, and *Neighbor Text*.
-*   **Logic**: Converts the element context into a vector and calculates Cosine Similarity.
-*   **Benefit**: Can find "Login" button even if it changes to "Sign In" and loses its ID, because they are semantically close.
-
-### 7. SemanticValue Strategy (Weight: 0.85)
-**The AI Simulator.**
-Uses fuzzy string matching (Levenshtein, Jaro-Winkler) to find strings that are *almost* the same or mean the same thing.
-*   **Logic**: "Close enough is good enough."
-*   **Example**: `text="Proceed to Checkout"` matches `text="Proceed to Pay"`.
-
-### 8. Neighbor Strategy (Weight: 0.80)
-**The Contextual Locator.**
-Uses the context of surrounding elements ("neighbors") to locate the target. Ideally for forms where input fields lose IDs but static Labels remain constant.
-*   **Logic**: Checks the element immediately preceding the target (Previous Sibling).
-*   **Example**: Finds an input field because it is to the right of a "Password" label.
-*   **Outcome**: If found, the engine generates a **Robust Neighbor XPath**.
-
-### 9. Structural Strategy (Weight: 0.75)
-**The Last Resort.**
-When all identifiers change, this looks at *where* the element is in the DOM tree.
-*   **Logic**: Compares Tag Name, Depth, and Parent Tag.
-*   **Example**: "It's the input inside the third div."
+| Nhóm | Strategy Name | Weight | Vai trò & Mục đích |
+| :--- | :--- | :---: | :--- |
+| **Lexical** | `ExactAttribute` | **1.00** | So khớp tuyệt đối ID, Name, data-testid. |
+| **Lexical** | `KeyBased` | **0.95** | Hiểu các biến thể đặt tên (Vd: `txtUser` vs `username`). |
+| **AI/Vector**| `RagHealing` | **0.95** | **[AL Brain]** Dùng AI Vector để hiểu ngữ cảnh phần tử. |
+| **Lexical** | `TextBased` | **0.92** | So khớp Text hiển thị (Vd: "Login", "Đăng nhập"). |
+| **Structure**| `Structural` | **0.90** | **[Backbone]** Kiểm tra vị trí DOM, Cha-Con, Form. |
+| **Lexical** | `CrossAttribute`| **0.90** | Nhận diện khi giá trị nhảy từ Attr này sang Attr kia. |
+| **AI/NLP**   | `SemanticValue` | **0.85** | Dùng AI hiểu từ đồng nghĩa (Vd: "Add" ~ "Create"). |
+| **Context**  | `Neighbor` | **0.80** | Xác nhận qua phần tử hàng xóm (Vd: Label bên cạnh). |
+| **Visual**   | `VisualHealing` | **0.35** | **[Last Resort]** So sánh hình ảnh pixel (SSIM). |
 
 ---
 
-## Configuration
+## 🧠 2. Công thức Độ tin cậy (Confidence)
 
-You can enable/disable strategies dynamically in `healing-config.json`:
+Hệ thống không chỉ tin vào điểm số cao nhất, mà nó tổng hợp ý kiến từ "hội đồng chuyên gia" thông qua công thức **45-35-20**:
 
-```json
-{
-    "strategies": [
-        "ExactAttributeStrategy",
-        "KeyBasedStrategy",
-        "LocationHealingStrategy", 
-        "RagHealingStrategy",
-        ...
-    ]
-}
-```
+$$Confidence = (45\% \times Mean) + (35\% \times Max) + (20\% \times PassRatio)$$
+
+1.  **45% Mean (Sức mạnh tập thể)**: Điểm trung bình của tất cả strategy. Đảm bảo phần tử "tốt đều" ở nhiều mặt.
+2.  **35% Max (Đỉnh cao cá nhân)**: Cho phép 1 Strategy xuất sắc (Vd: RAG) cứu phần tử nếu các cái khác thất bại.
+3.  **20% PassRatio (Sự đồng thuận)**: Niềm tin tăng lên khi nhiều Strategy cùng đồng ý chọn ứng cử viên đó.
+
+> [!IMPORTANT]
+> **Role Check**: Kết quả cuối cùng luôn được nhân với `roleScore`. Nếu ứng cử viên là `Button` trong khi gốc là `Input`, điểm sẽ về 0 ngay lập tức để tránh heal nhầm loại phần tử.
+
+---
+
+## 🛠️ 3. Nhóm thuộc tính (Attribute Groups)
+
+Để tối ưu việc so khớp, hệ thống phân loại các thuộc tính HTML thành 3 nhóm chính:
+
+*   **IDENTITY (Định danh)**: `id`, `name`, `data-testid`, `formcontrolname`. (Độ tin cậy cao nhất).
+*   **LABEL (Nhãn)**: `aria-label`, `placeholder`, `title`, `text`. (Dùng cho AI và NLP).
+*   **ROLE (Vai trò)**: `type`, `role`. (Dùng để kiểm soát tư cách phần tử).
+
+---
+
+## ⚙️ 4. Tùy chỉnh (Tuning Guide)
+
+Bạn có thể điều chỉnh tỷ lệ 45-35-20 trong `ElementScore.java` tùy theo môi trường:
+
+*   **Chế độ An toàn (45% Mean / 35% Max)**: Dùng khi Web ổn định, muốn tránh tối đa việc chọn nhầm phần tử.
+*   **Chế độ Liều lĩnh (35% Mean / 45% Max)**: Dùng khi Web đổi UI liên tục, muốn hệ thống "lỳ lợm" hơn để cứu các case test khó.
+
+---
+*Tài liệu này được cập nhật để phản ánh trạng thái tối ưu nhất của Healing Engine hiện tại.*

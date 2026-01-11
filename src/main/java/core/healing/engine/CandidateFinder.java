@@ -104,8 +104,8 @@ public class CandidateFinder {
                     node.setPrevSiblingTag((String) map.get("prevSiblingTag"));
                     node.setPrevSiblingText((String) map.get("prevSiblingText"));
 
-                    // Capture screenshot for Visual Healing
-                    captureScreenshotForCandidate(driver, node);
+                    // Capture screenshot for Visual Healing (Moved to Lazy Capture in VisualHealingStrategy)
+                    // captureScreenshotForCandidate(driver, node);
 
                     nodes.add(node);
                 }
@@ -157,7 +157,7 @@ public class CandidateFinder {
     /**
      * Construct a temporary CSS/XPath locator for screenshot capture.
      */
-    private static String constructTempLocator(ElementNode node) {
+    public static String constructTempLocator(ElementNode node) {
         // Try ID first (most reliable)
         String id = node.getAttribute("id");
         if (id != null && !id.isEmpty()) {

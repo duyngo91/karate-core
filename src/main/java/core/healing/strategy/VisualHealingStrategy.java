@@ -1,5 +1,7 @@
 package core.healing.strategy;
 
+import core.healing.IHealingDriver;
+import core.healing.engine.CandidateFinder;
 import core.healing.model.ElementNode;
 import core.healing.visual.VisualService;
 import core.platform.utils.Logger;
@@ -13,9 +15,14 @@ import java.awt.image.BufferedImage;
 public class VisualHealingStrategy implements HealingStrategy {
 
     private final VisualService visualService;
+    private IHealingDriver driver;
 
     public VisualHealingStrategy() {
         this.visualService = VisualService.getInstance();
+    }
+
+    public void setDriver(IHealingDriver driver) {
+        this.driver = driver;
     }
 
     @Override
@@ -48,10 +55,19 @@ public class VisualHealingStrategy implements HealingStrategy {
                 return 0.0;
             }
 
-            // Get candidate screenshot from memory
+            // Get candidate screenshot from memory (or capture if missing - Lazy Capture)
             BufferedImage candidateImage = candidate.getScreenshot();
+            if (candidateImage == null && driver != null) {
+                Logger.debug("Lazy Capture: Capturing screenshot for candidate %s", elementId);
+                String locator = CandidateFinder.constructTempLocator(candidate);
+                if (locator != null) {
+                    candidateImage = visualService.captureScreenshot(driver, locator);
+                    candidate.setScreenshot(candidateImage);
+                }
+            }
+
             if (candidateImage == null) {
-                Logger.debug("Visual Healing: No candidate screenshot available");
+                Logger.debug("Visual Healing: No candidate screenshot available for %s", elementId);
                 return 0.0;
             }
 
@@ -66,6 +82,7 @@ public class VisualHealingStrategy implements HealingStrategy {
             return 0.0;
         }
     }
+
 
     @Override
     public String getName() {

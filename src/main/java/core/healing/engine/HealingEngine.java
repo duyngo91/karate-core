@@ -35,7 +35,6 @@ public class HealingEngine {
             strategies.add(new SemanticValueStrategy());
             strategies.add(new StructuralStrategy());
             strategies.add(new NeighborStrategy());
-            strategies.add(new LocationHealingStrategy());
             strategies.add(new RagHealingStrategy());
         }
 
@@ -51,7 +50,6 @@ public class HealingEngine {
             case "SemanticValueStrategy" -> new SemanticValueStrategy();
             case "StructuralStrategy" -> new StructuralStrategy();
             case "NeighborStrategy" -> new NeighborStrategy();
-            case "LocationHealingStrategy" -> new LocationHealingStrategy();
             case "RagHealingStrategy" -> new RagHealingStrategy();
             case "VisualHealingStrategy" -> new VisualHealingStrategy();
             default -> {
@@ -125,13 +123,14 @@ public class HealingEngine {
         }
 
         // ===== PHASE 3: VISUAL FALLBACK =====
-        HealingResult visualHealing = tryVisualHealing(original, candidates);
+        HealingResult visualHealing = tryVisualHealing(driver, original, candidates);
         return visualHealing != null ?
                 visualHealing : best != null ?
                 best.getHealingResult() : HealingResult.failure();
     }
 
     private HealingResult tryVisualHealing(
+            IHealingDriver driver,
             ElementNode original,
             List<ElementNode> candidates) {
 
@@ -143,6 +142,9 @@ public class HealingEngine {
 
         for (HealingStrategy strategy : strategies) {
             if (!(strategy instanceof VisualHealingStrategy)) continue;
+
+            // Inject current driver for lazy capture
+            ((VisualHealingStrategy) strategy).setDriver(driver);
 
             for (ElementNode candidate : candidates) {
 
