@@ -15,10 +15,10 @@ public class NeighborStrategy implements HealingStrategy {
     private final SemanticMatcher matcher = new SemanticMatcher();
 
     @Override
-    public double score(ElementNode candidate, ElementNode target) {
-        // We only care if the TARGET (broken element) has expected neighbor info.
+    public double score(ElementNode original, ElementNode candidate) {
+        // We only care if the ORIGINAL (broken element) has expected neighbor info.
         // This info must come from the Target definition or inferred from Locator.
-        String expectedPrevText = target.getPrevSiblingText();
+        String expectedPrevText = original.getPrevSiblingText();
 
         if (expectedPrevText == null || expectedPrevText.isEmpty()) {
             return 0.0;

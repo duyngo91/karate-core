@@ -60,46 +60,26 @@ public class HealingEngine {
     }
 
     public HealingResult heal(IHealingDriver driver, ElementNode original) {
-
+        long start = System.currentTimeMillis();
         List<ElementNode> candidates = CandidateFinder.findCandidates(driver);
+        Logger.info("[Healing] Found %d candidates on page. (Time: %d ms)", candidates.size(), System.currentTimeMillis() - start);
+
         if (candidates.size() > HealingConfig.MAX_CANDIDATES) {
             candidates = candidates.subList(0, HealingConfig.MAX_CANDIDATES);
         }
 
         Map<ElementNode, ElementScore> scoreMap = new HashMap<>();
 
-        // ===== PHASE 1: DOM STRATEGIES (NO FILTERING) =====
+        // ===== PHASE 1: DOM STRATEGIES =====
         for (ElementNode candidate : candidates) {
-
-            ElementScore elementScore = new ElementScore(candidate);
-
-            // 👇 soft role penalty / boost
-            elementScore.roleScore = roleCompatibilityScore(original, candidate);
-
-            for (HealingStrategy strategy : strategies) {
-                if (strategy instanceof VisualHealingStrategy) continue;
-
-                double raw = strategy.score(original, candidate);
-                if (raw <= 0) continue;
-
-                double weighted = raw * strategy.getWeight();
-
-                elementScore.matches.add(
-                        new StrategyMatch(candidate, strategy, raw, weighted)
-                );
-
-                elementScore.totalStrategies++;
-
-                if (raw >= HealingConfig.HEALING_THRESHOLD) {
-                    elementScore.passCount++;
-                }
-
-                elementScore.totalWeightedScore += weighted;
-                elementScore.bestRawScore = Math.max(elementScore.bestRawScore, raw);
-            }
+            ElementScore elementScore = scoreCandidates(original, candidate);
 
             if (!elementScore.matches.isEmpty()) {
                 scoreMap.put(candidate, elementScore);
+                if (elementScore.getConfidence() > 0.35) {
+                    Logger.debug("[Healing] Potential: %s (Conf: %.2f)",
+                            candidate.getTagName(), elementScore.getConfidence());
+                }
             }
         }
 
@@ -113,7 +93,9 @@ public class HealingEngine {
                     .toList();
 
             // debug ElementScore
-            sorted.forEach(System.out::println);
+            if (HealingConfig.ENABLE_DEBUG_LOGGING) {
+                sorted.stream().limit(5).forEach(System.out::println);
+            }
 
             best = sorted.get(0);
 
@@ -127,6 +109,37 @@ public class HealingEngine {
         return visualHealing != null ?
                 visualHealing : best != null ?
                 best.getHealingResult() : HealingResult.failure();
+    }
+
+    private ElementScore scoreCandidates(ElementNode original, ElementNode candidate) {
+        ElementScore elementScore = new ElementScore(candidate);
+
+        // 👇 soft role penalty / boost
+        elementScore.roleScore = roleCompatibilityScore(original, candidate);
+
+        for (HealingStrategy strategy : strategies) {
+            if (strategy instanceof VisualHealingStrategy)
+                continue;
+
+            double raw = strategy.score(original, candidate);
+            if (raw <= 0)
+                continue;
+
+            double weighted = raw * strategy.getWeight();
+
+            elementScore.matches.add(
+                    new StrategyMatch(candidate, strategy, raw, weighted));
+
+            elementScore.totalStrategies++;
+
+            if (raw >= HealingConfig.HEALING_THRESHOLD) {
+                elementScore.passCount++;
+            }
+
+            elementScore.totalWeightedScore += weighted;
+            elementScore.bestRawScore = Math.max(elementScore.bestRawScore, raw);
+        }
+        return elementScore;
     }
 
     private HealingResult tryVisualHealing(
@@ -173,6 +186,7 @@ public class HealingEngine {
 
         return null;
     }
+
 
     /**
      * Soft role compatibility ∈ (0,1]

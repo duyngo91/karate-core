@@ -1,7 +1,9 @@
 {
     "enabled": true,
-    "captureGoldenState": true,
+    "captureGoldenState": false,
     "semanticEnabled": true,
+    "cacheEnabled": false,
+    "ragEnabled": false,
     "semanticMode": "HYBRID",
     "locatorPath": "src/test/java/web/locators",
     "strategies": [

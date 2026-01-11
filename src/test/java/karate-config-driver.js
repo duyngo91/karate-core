@@ -1,7 +1,7 @@
 function fn(arg) {
     let cf = {
         'driverConfig' : {
-            type : 'ChromeCustom', class: 'com.com.platform.web.ChromeCustom',
+            type : 'ChromeCustom', class: 'core.platform.web.ChromeCustom',
             headless: arg.config.headless === 'true',
             addOptions:
             [

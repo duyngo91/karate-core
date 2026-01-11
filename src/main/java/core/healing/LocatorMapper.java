@@ -40,4 +40,7 @@ public class LocatorMapper {
     public boolean isManaged(String locator) {
         return locatorToId.containsKey(locator);
     }
+    public int getSize() {
+        return locatorToId.size();
+    }
 }

@@ -29,6 +29,8 @@ public class HealingCache {
      * @param healedLocator   The working locator found by the healing engine.
      */
     public void put(String originalLocator, String healedLocator) {
+        if (!HealingConfig.getInstance().isCacheEnabled())
+            return;
         if (originalLocator == null || healedLocator == null)
             return;
         if (originalLocator.equals(healedLocator))

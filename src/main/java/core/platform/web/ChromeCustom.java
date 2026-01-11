@@ -504,15 +504,16 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     }
 
     @Override
-    public Element value(String locator, String value) {
+    public Element input(String locator, String value) {
         String healed = tryHeal(locator);
-        return new WebElement(this, super.value(healed, value));
+        return new WebElement(this, super.input(healed, value));
     }
 
     private String tryHeal(String locator) {
         try {
             // 1. Check Global Cache first
-            if (core.healing.HealingCache.getInstance().contains(locator)) {
+            if (core.healing.HealingConfig.getInstance().isCacheEnabled() && 
+                core.healing.HealingCache.getInstance().contains(locator)) {
                 String cached = core.healing.HealingCache.getInstance().get(locator);
                 Logger.info("[Cache] Using cached locator: %s -> %s", locator, cached);
                 return cached;
@@ -521,11 +522,15 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
             LocatorMapper mapper = LocatorMapper.getInstance();
             if (mapper.isManaged(locator)) {
                 String elementId = mapper.getElementId(locator);
+                Logger.info("[Healing] Managed locator failing: %s (ID: %s). Attempting heal...", locator, elementId);
                 String healed = this.healer.findElement(elementId, locator);
                 if (healed != null && !healed.equals(locator)) {
-                    Logger.info("Healed: %s → %s", elementId, healed);
+                    Logger.info("[Healing] Successfully healed to: %s", healed);
                     return healed;
                 }
+                Logger.warn("[Healing] Could not find a better alternative for: %s", locator);
+            } else {
+                Logger.debug("[Healing] Locator not managed, skipping: %s", locator);
             }
         } catch (Exception e) {
             Logger.debug("Healing skipped: %s", e.getMessage());

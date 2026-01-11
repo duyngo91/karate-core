@@ -15,8 +15,8 @@ public class HealingConfig {
 
     // Constants used by V2 strategies
     public static final double CONFIDENCE_STRONG = 0.75;
-    public static final double CONFIDENCE_OK     = 0.60;
-    public static final double CONFIDENCE_WEAK   = 0.45;
+    public static final double CONFIDENCE_OK     = 0.45;
+    public static final double CONFIDENCE_WEAK   = 0.35;
 
     public static final double HEALING_THRESHOLD = 0.5;
     public static final double VISUAL_THRESHOLD = 0.8;
@@ -29,6 +29,12 @@ public class HealingConfig {
 
     @JsonProperty("captureGoldenState")
     public boolean captureGoldenState = true;
+
+    @JsonProperty("ragEnabled")
+    public boolean ragEnabled = true;
+
+    @JsonProperty("cacheEnabled")
+    public boolean cacheEnabled = true;
 
     @JsonProperty("semanticEnabled")
     public boolean semanticEnabled = true;
@@ -57,6 +63,16 @@ public class HealingConfig {
     public boolean isCaptureGoldenState() {
         String prop = System.getProperty("healing.capture");
         return prop != null ? "true".equalsIgnoreCase(prop) : captureGoldenState;
+    }
+
+    public boolean isRagEnabled() {
+        String prop = System.getProperty("healing.rag");
+        return prop != null ? "true".equalsIgnoreCase(prop) : ragEnabled;
+    }
+
+    public boolean isCacheEnabled() {
+        String prop = System.getProperty("healing.cache");
+        return prop != null ? "true".equalsIgnoreCase(prop) : cacheEnabled;
     }
 
     public boolean isSemanticEnabled() {

@@ -27,12 +27,12 @@ public class HealingInitializer {
 
     private static void loadLocatorsFromPath(String locatorPath) {
         File locatorsDir = new File(locatorPath);
-        if (locatorsDir.exists() && locatorsDir.isDirectory()) {
-            int count = scanDirectory(locatorsDir);
-            Logger.info("Self-healing initialized with %d locator files from: %s", count, locatorPath);
-        } else {
-            Logger.warn("Locators directory not found at: %s - self-healing disabled", locatorPath);
-        }
+            if (locatorsDir.exists() && locatorsDir.isDirectory()) {
+                int count = scanDirectory(locatorsDir);
+                Logger.info("[Healing] Initialized with %d locator files from: %s", count, locatorsDir.getAbsolutePath());
+            } else {
+                Logger.warn("[Healing] Locators directory not found at: %s (Abs: %s)", locatorPath, locatorsDir.getAbsolutePath());
+            }
     }
 
     private static int scanDirectory(File dir) {
@@ -58,7 +58,9 @@ public class HealingInitializer {
 
             LocatorMapper mapper = LocatorMapper.getInstance();
             mapper.buildIndex();
-
+            
+            Logger.info("[Healing] Loaded %d entries into Mapper index.", mapper.getSize());
+            
             if (!initialized) {
                 // Initialized flag
                 initialized = true;

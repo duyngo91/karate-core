@@ -1,7 +1,9 @@
 {
   "loginPage": {
-    "txtUserName": "//input[@name='usertest']",
-    "txtUnknown": "//input[@name='pass']",
-    "btnSubmit": "//button[@type='sub']"
+    "username": "//input[@name='usertest']",
+    "password": "//input[@id='pass_old']",
+    "signIn": "//button[text()='Sign']",
+    "user_neighbor": "//label[text()='User']/following::input",
+    "unknown_btn": "//div[@class='unknown']//button"
   }
 }

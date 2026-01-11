@@ -88,10 +88,10 @@ public class ElementScore {
                 totalStrategies == 0 ? 0 :
                         (double) passCount / totalStrategies;
 
-        // Tính công thức Hybrid
+        // Tính công thức Hybrid (35-45-20 - Chế độ "Liều lĩnh" nhạy bén hơn)
         confidence =
-                0.45 * clamp(normalizedWeighted) +
-                        0.35 * clamp(bestRawScore) +
+                0.35 * clamp(normalizedWeighted) +
+                        0.45 * clamp(bestRawScore) +
                         0.20 * clamp(passRatio);
 
         // 👇 SCALE CUỐI – Kiểm tra tư cách phần tử (Role/Tag)
