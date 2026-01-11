@@ -187,7 +187,7 @@ get_current_url()
 ```json
 // Text-based locators for dynamic IDs
 {
-  "submitButton": "//button[contains(text(), 'Submit')]",
+  "submitButton": "//button[contains(., 'Submit')]",
   "dataTable": "//table[contains(@class, 'data-table')]"
 }
 ```

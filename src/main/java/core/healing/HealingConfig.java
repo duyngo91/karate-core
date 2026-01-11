@@ -14,6 +14,10 @@ public class HealingConfig {
     private static final String CONFIG_PATH = "healing-config.json";
 
     // Constants used by V2 strategies
+    public static final double CONFIDENCE_STRONG = 0.75;
+    public static final double CONFIDENCE_OK     = 0.60;
+    public static final double CONFIDENCE_WEAK   = 0.45;
+
     public static final double HEALING_THRESHOLD = 0.5;
     public static final double VISUAL_THRESHOLD = 0.8;
     public static final boolean ENABLE_DEBUG_LOGGING = true;

@@ -19,11 +19,29 @@ public class ElementNode {
     private String prevSiblingTag; // Tag of the previous sibling
     private String prevSiblingText; // Text of the previous sibling
     private String elementId; // Unique ID for RAG lookup (e.g. "login.username")
+    private int domIndex; // Unique DOM index/path if available
+    private String formId; // Unique form/container ID if available
 
     // Transient field for Visual Healing (not serialized, in-memory only)
     private transient java.awt.image.BufferedImage screenshot;
 
     public ElementNode() {
+    }
+
+    public String getFormId() {
+        return formId;
+    }
+
+    public void setFormId(String formId) {
+        this.formId = formId;
+    }
+
+    public int getDomIndex() {
+        return domIndex;
+    }
+
+    public void setDomIndex(int domIndex) {
+        this.domIndex = domIndex;
     }
 
     public String getTagName() {
@@ -153,7 +171,7 @@ public class ElementNode {
 
     @Override
     public String toString() {
-        return String.format("<%s> %s %s", tagName, attributes, text != null ? text : "");
+        return String.format("<%s> %s %s %s", tagName, attributes, formId, text != null ? text : "");
     }
 
     private String constructLocator(ElementNode node) {
@@ -171,20 +189,20 @@ public class ElementNode {
         if (node.getText() != null && !node.getText().isEmpty()) {
             // Simplified text locator
             String text = node.getText().length() > 20 ? node.getText().substring(0, 20) : node.getText();
-            return "//" + node.getTagName() + "[contains(text(), '" + text + "')]";
+            return "//" + node.getTagName() + "[contains(., '" + text + "')]";
         }
 
         // Try Neighbor Context (if available and strong)
         if (node.getPrevSiblingText() != null && !node.getPrevSiblingText().isEmpty()
                 && node.getPrevSiblingTag() != null) {
             // Heuristic: If we are here, ID/Name/Text strategies likely failed.
-            // Construct: //prevTag[contains(text(),'prevText')]/following-sibling::tag[1]
+            // Construct: //prevTag[contains(.,'prevText')]/following-sibling::tag[1]
             String prevText = node.getPrevSiblingText().length() > 20 ? node.getPrevSiblingText().substring(0, 20)
                     : node.getPrevSiblingText();
             // Escape single quotes just in case
             prevText = prevText.replace("'", "\'");
 
-            return "//" + node.getPrevSiblingTag() + "[contains(text(), '" + prevText + "')]/following-sibling::"
+            return "//" + node.getPrevSiblingTag() + "[contains(., '" + prevText + "')]/following-sibling::"
                     + node.getTagName() + "[1]";
         }
 
@@ -198,5 +216,41 @@ public class ElementNode {
         return "//" + node.getTagName(); // Weak fallback
     }
 
+    /**
+     * Suy luận role của element dựa trên tag + nội dung
+     */
+    public ElementRole inferRole() {
 
+        if (tagName == null) {
+            return ElementRole.UNKNOWN;
+        }
+
+        switch (tagName) {
+            case "input":
+            case "textarea":
+            case "select":
+                return ElementRole.INPUT;
+
+            case "label":
+                return ElementRole.LABEL;
+
+            case "button":
+                return ElementRole.BUTTON;
+
+            case "a":
+                return ElementRole.LINK;
+
+            case "div":
+            case "section":
+            case "article":
+            case "form":
+                return ElementRole.CONTAINER;
+        }
+
+        if (text != null && !text.trim().isEmpty()) {
+            return ElementRole.TEXT;
+        }
+
+        return ElementRole.UNKNOWN;
+    }
 }

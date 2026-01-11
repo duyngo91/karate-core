@@ -69,8 +69,6 @@ public class SelfHealingDriver {
             }
         }
 
-        // history.recordFailure(elementId, originalLocator); // Removed
-        // history.save(); // Removed
         monitor.recordEvent(elementId, originalLocator, null, "None", 0.0, false);
         return null;
     }

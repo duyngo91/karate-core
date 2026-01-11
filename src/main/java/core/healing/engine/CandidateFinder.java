@@ -15,38 +15,61 @@ public class CandidateFinder {
         Logger.debug("Using JS bridge to extract interactive elements...");
 
         // Extended tag list for better coverage
-        String js = "(function() {" +
-                "  var results = [];" +
-                "  var tags = ['button', 'a', 'input', 'select', 'textarea', 'label', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'];"
-                +
-                "  var elements = document.querySelectorAll(tags.join(','));" +
-                "  for (var i = 0; i < elements.length; i++) {" +
-                "    var el = elements[i];" +
-                "    if (el.offsetWidth > 0 && el.offsetHeight > 0) {" +
-                "      var rect = el.getBoundingClientRect();" +
-                "      var attrs = {};" +
-                "      for (var j = 0; j < el.attributes.length; j++) {" +
-                "        attrs[el.attributes[j].name] = el.attributes[j].value;" +
-                "      }" +
-                "      " +
-                "      var depth = 0;" +
-                "      var parent = el.parentElement;" +
-                "      while(parent) { depth++; parent = parent.parentElement; }" +
-                "      " +
-                "      var parentTag = el.parentElement ? el.parentElement.tagName.toLowerCase() : null;" +
-                "      " +
-                "      results.push({" +
-                "        tagName: el.tagName.toLowerCase()," +
-                "        text: el.innerText || el.value || ''," +
-                "        attributes: attrs," +
-                "        x: rect.left, y: rect.top, w: rect.width, h: rect.height," +
-                "        depth: depth," +
-                "        parentTag: parentTag" +
-                "      });" +
-                "    }" +
-                "  }" +
-                "  return results;" +
-                "})();";
+        String js = """
+        (function() {
+          function getDomIndex(el) {
+            if (!el || !el.parentElement) return -1;
+            return Array.from(el.parentElement.children).indexOf(el);
+          };
+          function findFormContainer(el) {
+            let cur = el;
+            while (cur) {
+              if (
+                cur.tagName === 'FORM' ||
+                cur.getAttribute('role') === 'form' ||
+                cur.className?.toLowerCase().includes('form') ||
+                cur.className?.toLowerCase().includes('login')
+              ) {
+                return cur;
+              }
+              cur = cur.parentElement;
+            }
+            return null;
+          };
+          
+          var results = [];
+          var tags = ['button', 'a', 'input', 'select', 'textarea', 'label', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'];
+          var elements = document.querySelectorAll(tags.join(','));
+          for (var i = 0; i < elements.length; i++) {
+            var el = elements[i];
+            if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+              var rect = el.getBoundingClientRect();
+              var attrs = {};
+              for (var j = 0; j < el.attributes.length; j++) {
+                attrs[el.attributes[j].name] = el.attributes[j].value;
+              }
+              
+              var depth = 0;
+              var parent = el.parentElement;
+              while(parent) { depth++; parent = parent.parentElement; }
+              
+              var parentTag = el.parentElement ? el.parentElement.tagName.toLowerCase() : null;
+              var container = findFormContainer(el);
+              results.push({
+                tagName: el.tagName.toLowerCase(),
+                text: el.innerText || el.value || '',
+                attributes: attrs,
+                x: rect.left, y: rect.top, w: rect.width, h: rect.height,
+                depth: depth,
+                domIndex: getDomIndex(el),
+                formId: container ? container.id || container.className || container.tagName : null,
+                parentTag: parentTag
+              });
+            }
+          }
+          return results;
+        })();
+        """;
 
         try {
             Object result = driver.script(js);
@@ -75,6 +98,8 @@ public class CandidateFinder {
 
                     if (map.get("depth") instanceof Number)
                         node.setDepth(((Number) map.get("depth")).intValue());
+                    node.setDomIndex((Integer) map.get("domIndex"));
+                    node.setFormId((String) map.get("formId"));
                     node.setParentTag((String) map.get("parentTag"));
                     node.setPrevSiblingTag((String) map.get("prevSiblingTag"));
                     node.setPrevSiblingText((String) map.get("prevSiblingText"));

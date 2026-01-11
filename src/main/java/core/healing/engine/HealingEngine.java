@@ -2,10 +2,7 @@ package core.healing.engine;
 
 import core.healing.HealingConfig;
 import core.healing.IHealingDriver;
-import core.healing.model.ElementNode;
-import core.healing.model.ElementScore;
-import core.healing.model.HealingResult;
-import core.healing.model.StrategyMatch;
+import core.healing.model.*;
 import core.healing.strategy.*;
 import core.platform.utils.Logger;
 
@@ -30,7 +27,7 @@ public class HealingEngine {
                 }
             }
         } else {
-            // Fallback defaults
+            // Default strategies
             strategies.add(new ExactAttributeStrategy());
             strategies.add(new KeyBasedStrategy());
             strategies.add(new TextBasedStrategy());
@@ -46,36 +43,25 @@ public class HealingEngine {
     }
 
     private HealingStrategy createStrategy(String name) {
-        switch (name) {
-            case "ExactAttributeStrategy":
-                return new ExactAttributeStrategy();
-            case "KeyBasedStrategy":
-                return new KeyBasedStrategy();
-            case "TextBasedStrategy":
-                return new TextBasedStrategy();
-            case "CrossAttributeStrategy":
-                return new CrossAttributeStrategy();
-            case "SemanticValueStrategy":
-                return new SemanticValueStrategy();
-            case "StructuralStrategy":
-                return new StructuralStrategy();
-            case "NeighborStrategy":
-                return new NeighborStrategy();
-            case "LocationHealingStrategy":
-                return new LocationHealingStrategy();
-            case "RagHealingStrategy":
-                return new RagHealingStrategy();
-            case "VisualHealingStrategy":
-                return new VisualHealingStrategy();
-            default:
+        return switch (name) {
+            case "ExactAttributeStrategy" -> new ExactAttributeStrategy();
+            case "KeyBasedStrategy" -> new KeyBasedStrategy();
+            case "TextBasedStrategy" -> new TextBasedStrategy();
+            case "CrossAttributeStrategy" -> new CrossAttributeStrategy();
+            case "SemanticValueStrategy" -> new SemanticValueStrategy();
+            case "StructuralStrategy" -> new StructuralStrategy();
+            case "NeighborStrategy" -> new NeighborStrategy();
+            case "LocationHealingStrategy" -> new LocationHealingStrategy();
+            case "RagHealingStrategy" -> new RagHealingStrategy();
+            case "VisualHealingStrategy" -> new VisualHealingStrategy();
+            default -> {
                 Logger.warn("Unknown strategy in config: %s", name);
-                return null;
-        }
+                yield null;
+            }
+        };
     }
 
     public HealingResult heal(IHealingDriver driver, ElementNode original) {
-
-        long startTime = System.currentTimeMillis();
 
         List<ElementNode> candidates = CandidateFinder.findCandidates(driver);
         if (candidates.size() > HealingConfig.MAX_CANDIDATES) {
@@ -84,133 +70,132 @@ public class HealingEngine {
 
         Map<ElementNode, ElementScore> scoreMap = new HashMap<>();
 
-        // ===== PHASE 1: NON-VISUAL STRATEGIES =====
+        // ===== PHASE 1: DOM STRATEGIES (NO FILTERING) =====
         for (ElementNode candidate : candidates) {
+
             ElementScore elementScore = new ElementScore(candidate);
+
+            // 👇 soft role penalty / boost
+            elementScore.roleScore = roleCompatibilityScore(original, candidate);
 
             for (HealingStrategy strategy : strategies) {
                 if (strategy instanceof VisualHealingStrategy) continue;
 
                 double raw = strategy.score(original, candidate);
+                if (raw <= 0) continue;
+
                 double weighted = raw * strategy.getWeight();
 
-                StrategyMatch match = new StrategyMatch(
-                        candidate, strategy, raw, weighted
+                elementScore.matches.add(
+                        new StrategyMatch(candidate, strategy, raw, weighted)
                 );
-                elementScore.matches.add(match);
 
-                // ✔ PASS chỉ là signal phụ
+                elementScore.totalStrategies++;
+
                 if (raw >= HealingConfig.HEALING_THRESHOLD) {
                     elementScore.passCount++;
                 }
 
-                // ✔ LUÔN cộng weighted score
                 elementScore.totalWeightedScore += weighted;
-
-                // ✔ Track cú đánh mạnh nhất
-                elementScore.bestRawScore =
-                        Math.max(elementScore.bestRawScore, raw);
+                elementScore.bestRawScore = Math.max(elementScore.bestRawScore, raw);
             }
 
-            scoreMap.put(candidate, elementScore);
+            if (!elementScore.matches.isEmpty()) {
+                scoreMap.put(candidate, elementScore);
+            }
         }
 
-        // ===== PHASE 2: CHOOSE BEST ELEMENT (EVIDENCE-BASED) =====
-        List<ElementScore> sorted = scoreMap.values()
-                .stream()
-                .sorted(Comparator
-                        .comparingDouble((ElementScore e) -> e.totalWeightedScore).reversed()
-                        .thenComparingDouble(e -> e.bestRawScore).reversed()
-                        .thenComparingInt(e -> e.passCount).reversed()
-                )
-                .toList();
+        // ===== PHASE 2: CHOOSE BEST BY CONFIDENCE =====
+        ElementScore best = null;
+        if (!scoreMap.isEmpty()) {
+            List<ElementScore> sorted = scoreMap.values()
+                    .stream()
+                    .sorted(Comparator.comparing(ElementScore::getConfidence, Comparator.reverseOrder())
+                            .thenComparing((ElementScore e) -> e.bestRawScore, Comparator.reverseOrder()))
+                    .toList();
 
-        if (!sorted.isEmpty()) {
-            ElementScore best = sorted.get(0);
+            // debug ElementScore
+            sorted.forEach(System.out::println);
 
-            // Optional safety check
-            if (best.bestRawScore >= HealingConfig.HEALING_THRESHOLD) {
+            best = sorted.get(0);
+
+            if (best.getConfidence() >= HealingConfig.CONFIDENCE_OK) {
                 return best.getHealingResult();
             }
         }
 
-        // ===== PHASE 3: VISUAL FALLBACK (CHOOSE BEST, NOT FIRST) =====
+        // ===== PHASE 3: VISUAL FALLBACK =====
+        HealingResult visualHealing = tryVisualHealing(original, candidates);
+        return visualHealing != null ?
+                visualHealing : best != null ?
+                best.getHealingResult() : HealingResult.failure();
+    }
+
+    private HealingResult tryVisualHealing(
+            ElementNode original,
+            List<ElementNode> candidates) {
+
         Logger.warn("DOM healing failed. Trying visual healing...");
 
         ElementNode bestVisual = null;
-        double bestVisualScore = 0;
-        HealingStrategy bestVisualStrategy = null;
+        double bestScore = 0;
+        HealingStrategy bestStrategy = null;
 
         for (HealingStrategy strategy : strategies) {
             if (!(strategy instanceof VisualHealingStrategy)) continue;
 
             for (ElementNode candidate : candidates) {
+
                 double raw = strategy.score(original, candidate);
-                if (raw > bestVisualScore) {
-                    bestVisualScore = raw;
+                if (raw <= 0) continue;
+
+                // 👇 apply role penalty
+                double finalScore = raw * roleCompatibilityScore(original, candidate);
+
+                if (finalScore > bestScore) {
+                    bestScore = finalScore;
                     bestVisual = candidate;
-                    bestVisualStrategy = strategy;
+                    bestStrategy = strategy;
                 }
             }
         }
 
-        if (bestVisual != null && bestVisualScore >= HealingConfig.VISUAL_THRESHOLD) {
-            bestVisual.setLocator(constructLocator(bestVisual));
+        if (bestVisual != null && bestScore >= HealingConfig.VISUAL_THRESHOLD) {
+            bestVisual.genLocator();
             return new HealingResult(
                     bestVisual,
-                    bestVisualScore,
-                    bestVisualStrategy.getName()
+                    bestScore,
+                    bestStrategy.getName()
             );
         }
 
-        // ===== PHASE 4: LAST RESORT (BEST DOM GUESS) =====
-        sorted.forEach(System.out::println);
-
-        return !sorted.isEmpty()
-                ? sorted.get(0).getHealingResult()
-                : HealingResult.failure();
+        return null;
     }
 
+    /**
+     * Soft role compatibility ∈ (0,1]
+     */
+    private double roleCompatibilityScore(ElementNode original, ElementNode candidate) {
 
-    private String constructLocator(ElementNode node) {
-        // Try id
-        String id = node.getAttribute("id");
-        if (id != null && !id.isEmpty())
-            return "//*[@id='" + id + "']";
+        ElementRole o = original.inferRole();
+        ElementRole c = candidate.inferRole();
 
-        // Try name
-        String name = node.getAttribute("name");
-        if (name != null && !name.isEmpty())
-            return "//*[@name='" + name + "']";
+        if (o == c) return 1.0;
 
-        // Try text
-        if (node.getText() != null && !node.getText().isEmpty()) {
-            // Simplified text locator
-            String text = node.getText().length() > 20 ? node.getText().substring(0, 20) : node.getText();
-            return "//" + node.getTagName() + "[contains(text(), '" + text + "')]";
-        }
+        // input ↔ label
+        if ((o == ElementRole.INPUT && c == ElementRole.LABEL) ||
+                (o == ElementRole.LABEL && c == ElementRole.INPUT))
+            return 0.7;
 
-        // Try Neighbor Context (if available and strong)
-        if (node.getPrevSiblingText() != null && !node.getPrevSiblingText().isEmpty()
-                && node.getPrevSiblingTag() != null) {
-            // Heuristic: If we are here, ID/Name/Text strategies likely failed.
-            // Construct: //prevTag[contains(text(),'prevText')]/following-sibling::tag[1]
-            String prevText = node.getPrevSiblingText().length() > 20 ? node.getPrevSiblingText().substring(0, 20)
-                    : node.getPrevSiblingText();
-            // Escape single quotes just in case
-            prevText = prevText.replace("'", "\'");
+        // button ↔ link
+        if ((o == ElementRole.BUTTON && c == ElementRole.LINK) ||
+                (o == ElementRole.LINK && c == ElementRole.BUTTON))
+            return 0.6;
 
-            return "//" + node.getPrevSiblingTag() + "[contains(text(), '" + prevText + "')]/following-sibling::"
-                    + node.getTagName() + "[1]";
-        }
+        // text ↔ label
+        if (o == ElementRole.TEXT && c == ElementRole.LABEL)
+            return 0.5;
 
-        // Fallback to internal xpath if we had one, or attributes
-        for (Map.Entry<String, String> entry : node.getAttributes().entrySet()) {
-            if (!entry.getKey().equals("class") && !entry.getKey().equals("style")) {
-                return "//" + node.getTagName() + "[@" + entry.getKey() + "='" + entry.getValue() + "']";
-            }
-        }
-
-        return "//" + node.getTagName(); // Weak fallback
+        return 0.2; // very weak but never zero
     }
 }
