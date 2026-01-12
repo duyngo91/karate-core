@@ -97,4 +97,8 @@ public class TextBasedStrategy implements HealingStrategy {
     public double getWeight() {
         return 0.92; // High weight - text is very reliable for these elements
     }
+    @Override
+    public double getHealingHold() {
+        return 0.5;
+    }
 }

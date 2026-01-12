@@ -110,4 +110,8 @@ public class VisualHealingStrategy implements HealingStrategy {
         Logger.debug("Visual SSIM score: %.3f", ssim);
         return ssim;
     }
+    @Override
+    public double getHealingHold() {
+        return 0.5;
+    }
 }

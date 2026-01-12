@@ -6,6 +6,6 @@ Feature: LoginPage
 
     @login
     Scenario: login
-      * retry(5,1000).waitFor(locators.loginPage.txtUserName).input(__arg.username)
-      * waitFor(locators.loginPage.txtUnknown).input(__arg.password)
-      * click(locators.loginPage.btnSubmit)
+      * retry(10,1000).waitFor(locators.loginPage.username).input(__arg.username)
+      * waitFor(locators.loginPage.password).input(__arg.password)
+      * click(locators.loginPage.unknown_btn)

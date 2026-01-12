@@ -2,7 +2,7 @@
 Feature: Stress Testing All Healing Strategies in Local Environment
 
   Background:
-    * configure driver = { type: 'ChromeCustom', showDriverLog: true }
+    * configure driver = driverConfig
     # Load locators
     * def locators = read(webLocators + 'LocalPage.json')
     * def localPage = locators.localPage

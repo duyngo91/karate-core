@@ -83,4 +83,8 @@ public class RagHealingStrategy implements HealingStrategy {
     public double getWeight() {
         return 0.95; // High confidence if vector matches
     }
+    @Override
+    public double getHealingHold() {
+        return 0.5;
+    }
 }

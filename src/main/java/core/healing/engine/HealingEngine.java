@@ -122,7 +122,8 @@ public class HealingEngine {
                 continue;
 
             double raw = strategy.score(original, candidate);
-            if (raw <= 0)
+            //  raw = 0 || 3 || 5 ?
+            if (raw < strategy.getHealingHold())
                 continue;
 
             double weighted = raw * strategy.getWeight();

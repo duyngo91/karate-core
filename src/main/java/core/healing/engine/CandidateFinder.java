@@ -36,6 +36,16 @@ public class CandidateFinder {
             }
             return null;
           };
+          function getStructuralPath(el) {
+            var path = [];
+            var cur = el;
+            var limit = 10;
+            while (cur && limit-- > 0) {
+              path.push(cur.tagName.toLowerCase());
+              cur = cur.parentElement;
+            }
+            return path.join(' > ');
+          };
           
           var results = [];
           var tags = ['button', 'a', 'input', 'select', 'textarea', 'label', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'];
@@ -63,7 +73,8 @@ public class CandidateFinder {
                 depth: depth,
                 domIndex: getDomIndex(el),
                 formId: container ? container.id || container.className || container.tagName : null,
-                parentTag: parentTag
+                parentTag: parentTag,
+                structuralPath: getStructuralPath(el)
               });
             }
           }
@@ -101,6 +112,7 @@ public class CandidateFinder {
                     node.setDomIndex((Integer) map.get("domIndex"));
                     node.setFormId((String) map.get("formId"));
                     node.setParentTag((String) map.get("parentTag"));
+                    node.setStructuralPath((String) map.get("structuralPath"));
                     node.setPrevSiblingTag((String) map.get("prevSiblingTag"));
                     node.setPrevSiblingText((String) map.get("prevSiblingText"));
 

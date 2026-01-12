@@ -1,7 +1,7 @@
 Feature: Simple Visual Healing Test
 
   Background:
-    * configure driver = { type: 'ChromeCustom', showDriverLog: true }
+    * configure driver = driverConfig
 
   @test-visual-healing
   Scenario: Visual Healing - Simple Button ID Change

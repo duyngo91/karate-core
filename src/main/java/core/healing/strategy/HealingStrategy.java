@@ -32,4 +32,5 @@ public interface HealingStrategy {
     default double getWeight() {
         return 1.0;
     }
+    double getHealingHold();
 }

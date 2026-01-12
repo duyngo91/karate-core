@@ -82,4 +82,9 @@ public class CrossAttributeStrategy implements HealingStrategy {
     public double getWeight() {
         return 0.9; // Slightly lower than exact match
     }
+
+    @Override
+    public double getHealingHold() {
+        return 0.5;
+    }
 }

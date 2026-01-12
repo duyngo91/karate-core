@@ -2,6 +2,12 @@ package core.healing;
 
 import core.platform.utils.Logger;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class SelfHealingDriver {
     private final IHealingDriver driver;
     // private final LocatorHistory history; // Removed in favor of
@@ -147,9 +153,36 @@ public class SelfHealingDriver {
                         node.setPrevSiblingText(mNeighbor.group(1));
                     }
                 }
+
+
             } catch (Exception e) {
                 // Ignore parsing errors
             }
+
+            // ===== 3. Extract Structural Path Fingerprint =====
+            try {
+                List<String> structural = new ArrayList<>();
+
+                // Match /tag or //tag
+                Pattern p = Pattern.compile("(//?)([a-zA-Z0-9]+)");
+                Matcher m = p.matcher(locator);
+
+                while (m.find()) {
+                    String axis = m.group(1); // "/" or "//"
+                    String tag  = m.group(2).toLowerCase();
+
+                    structural.add(tag);
+                }
+
+                if (!structural.isEmpty()) {
+                    Collections.reverse(structural);
+                    node.setStructuralPath(String.join(" > ", structural));
+                }
+
+            } catch (Exception e) {
+                // ignore
+            }
+
         }
         Logger.info("[TargetNode] ID: %s, Key: %s, Tag: %s, Attrs: %s", elementId, extractKey(elementId), node.getTagName(), node.getAttributes());
         return node;

@@ -2,7 +2,7 @@
 Feature: 50 Healing Test Cases
 
   Background:
-    * configure driver = { type: 'ChromeCustom', showDriverLog: true }
+    * configure driver = driverConfig
     # Enable Healing
 
   @test-50

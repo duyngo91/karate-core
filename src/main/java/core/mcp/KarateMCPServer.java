@@ -1,6 +1,5 @@
 package core.mcp;
 
-import core.healing.SelfHealingDriver;
 import core.mcp.recorder.ScriptRecorder;
 import core.mcp.schema.SchemaLoader;
 import core.platform.web.ChromeCustom;
@@ -51,7 +50,6 @@ public class KarateMCPServer {
         addCheckboxTools(tools);
         addTableTools(tools);
         addRecordingTools(tools);
-        addAITools(tools);
         addNetworkTools(tools);
         return tools;
     }
@@ -323,26 +321,7 @@ public class KarateMCPServer {
     }
 
     // ==================== AI TOOLS ====================
-    private static void addAITools(List<McpServerFeatures.SyncToolSpecification> tools) {
-        tools.add(createTool("heal_locator", "Self-heal broken locator using semantic and learning strategies", 
-            (exchange, args) -> {
-                try {
-                    if (driver == null) throw new RuntimeException("Browser not initialized");
-                    String elementId = args.get("element_id").toString();
-                    String locator = args.get("locator").toString();
-                    
-                    SelfHealingDriver healer = new SelfHealingDriver(driver);
-                    String healed = healer.findElement(elementId, locator);
-                    
-                    if (healed != null) {
-                        return ToolHandler.success("Healed locator: " + healed);
-                    }
-                    return ToolHandler.error("Could not heal locator for: " + elementId);
-                } catch (Exception e) {
-                    return ToolHandler.error(e.getMessage());
-                }
-            }));
-    }
+
 
     // ==================== NETWORK TOOLS ====================
     private static void addNetworkTools(List<McpServerFeatures.SyncToolSpecification> tools) {

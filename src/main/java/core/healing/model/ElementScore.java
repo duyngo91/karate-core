@@ -155,7 +155,7 @@ public class ElementScore {
                     .append(" | weighted=")
                     .append(format(m.getWeightedScore()));
 
-            if (m.getRawScore() >= HealingConfig.HEALING_THRESHOLD) {
+            if (m.getRawScore() >= m.getStrategy().getHealingHold()) {
                 sb.append("  ✔ PASS");
             }
 

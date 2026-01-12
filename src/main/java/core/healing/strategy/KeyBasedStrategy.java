@@ -96,4 +96,8 @@ public class KeyBasedStrategy implements HealingStrategy {
     public double getWeight() {
         return 0.95; // Very high weight - second only to ExactAttribute
     }
+    @Override
+    public double getHealingHold() {
+        return 0.5;
+    }
 }

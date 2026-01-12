@@ -24,7 +24,7 @@ semanticMode: "HYBRID"
 # Confidence Calculation Mode:
 # - SAFE: Prioritizes overall stability (Mean > Max). Best for stable sites.
 # - RECKLESS: Prioritizes the best single indicator (Max > Mean). Best for high-refactor sites.
-healingMode: "SAFE"
+healingMode: "RECKLESS"
 
 # Where to look for/store locator metadata
 locatorPath: "src/test/java/web/locators"

@@ -21,6 +21,7 @@ public class ElementNode {
     private String elementId; // Unique ID for RAG lookup (e.g. "login.username")
     private int domIndex; // Unique DOM index/path if available
     private String formId; // Unique form/container ID if available
+    private String structuralPath; // Ancestor tag chain (e.g. "button > div > form")
 
     // Transient field for Visual Healing (not serialized, in-memory only)
     private transient java.awt.image.BufferedImage screenshot;
@@ -42,6 +43,14 @@ public class ElementNode {
 
     public void setDomIndex(int domIndex) {
         this.domIndex = domIndex;
+    }
+
+    public String getStructuralPath() {
+        return structuralPath;
+    }
+
+    public void setStructuralPath(String structuralPath) {
+        this.structuralPath = structuralPath;
     }
 
     public String getTagName() {

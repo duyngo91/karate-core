@@ -13,6 +13,7 @@ public class ElementMetadata {
     private String text;
     private Map<String, String> attributes;
     private String neighborText; // Text of the previous sibling
+    private String structuralPath; // Ancestor tag chain
     private float[] vector; // Embedding vector (Dimension 384 for MiniLM-L6)
 
     // Geometric properties (for Location Healing)
@@ -22,13 +23,14 @@ public class ElementMetadata {
     }
 
     public ElementMetadata(String elementId, String locator, String tagName, String text,
-            Map<String, String> attributes, String neighborText) {
+            Map<String, String> attributes, String neighborText, String structuralPath) {
         this.elementId = elementId;
         this.locator = locator;
         this.tagName = tagName;
         this.text = text;
         this.attributes = attributes;
         this.neighborText = neighborText;
+        this.structuralPath = structuralPath;
     }
 
     // Getters and Setters
@@ -78,6 +80,14 @@ public class ElementMetadata {
 
     public void setNeighborText(String neighborText) {
         this.neighborText = neighborText;
+    }
+
+    public String getStructuralPath() {
+        return structuralPath;
+    }
+
+    public void setStructuralPath(String structuralPath) {
+        this.structuralPath = structuralPath;
     }
 
     public float[] getVector() {

@@ -68,4 +68,8 @@ public class ExactAttributeStrategy implements HealingStrategy {
     public double getWeight() {
         return 1.0; // Highest weight - most reliable
     }
+    @Override
+    public double getHealingHold() {
+        return 0.5;
+    }
 }

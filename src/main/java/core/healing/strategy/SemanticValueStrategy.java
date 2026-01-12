@@ -87,4 +87,8 @@ public class SemanticValueStrategy implements HealingStrategy {
     public double getWeight() {
         return 0.85; // Good but less reliable than exact/cross-attribute
     }
+    @Override
+    public double getHealingHold() {
+        return 0.5;
+    }
 }

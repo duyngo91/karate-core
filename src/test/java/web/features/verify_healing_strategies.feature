@@ -2,7 +2,7 @@
 Feature: Self-Healing Strategy Verification
 
   Background:
-    * configure driver = { type: 'ChromeCustom', showDriverLog: true }
+    * configure driver = driverConfig
     # Lưu ý: Đây là file mẫu để verify từng Strategy. 
     # Bạn sẽ chạy test này trên một trang web thật (ví dụ: https://opensource-demo.orangehrmlive.com/) 
     # để giả lập việc Locator bị hỏng.

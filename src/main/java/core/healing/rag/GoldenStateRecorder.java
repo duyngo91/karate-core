@@ -53,12 +53,22 @@ public class GoldenStateRecorder {
                     "  attrs[el.attributes[i].name] = el.attributes[i].value;" +
                     "}" +
                     "var rect = el.getBoundingClientRect();" +
-                    "var prev = el.previousElementSibling;" +
+                    "function getStructuralPath(el) {" +
+                    "  var path = [];" +
+                    "  var cur = el;" +
+                    "  var limit = 10;" +
+                    "  while (cur && limit-- > 0) {" +
+                    "    path.push(cur.tagName.toLowerCase());" +
+                    "    cur = cur.parentElement;" +
+                    "  }" +
+                    "  return path.join(' > ');" +
+                    "};" +
                     "return {" +
                     "  tagName: el.tagName.toLowerCase()," +
                     "  text: el.textContent ? el.textContent.substring(0, 200).trim() : ''," +
                     "  attributes: attrs," +
                     "  neighborText: prev ? (prev.textContent ? prev.textContent.trim() : '') : ''," +
+                    "  structuralPath: getStructuralPath(el)," +
                     "  x: rect.left, y: rect.top, w: rect.width, h: rect.height" +
                     "};" +
                     "})();";
@@ -86,6 +96,7 @@ public class GoldenStateRecorder {
                 meta.setTagName((String) data.getOrDefault("tagName", ""));
                 meta.setText((String) data.getOrDefault("text", ""));
                 meta.setNeighborText((String) data.getOrDefault("neighborText", ""));
+                meta.setStructuralPath((String) data.getOrDefault("structuralPath", ""));
 
                 if (data.containsKey("attributes") && data.get("attributes") instanceof Map) {
                     Map<String, String> attrs = new HashMap<>();

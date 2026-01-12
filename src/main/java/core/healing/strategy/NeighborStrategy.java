@@ -53,4 +53,8 @@ public class NeighborStrategy implements HealingStrategy {
         // Lower than ID/Exact Text but higher than Structure
         return 0.80;
     }
+    @Override
+    public double getHealingHold() {
+        return 0.5;
+    }
 }
