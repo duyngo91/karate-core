@@ -73,4 +73,4 @@ strategies:
 ---
 
 © 2025 Core Platform. All rights reserved.  
-📧 Email: ngovanduy1991@gmail.com - duynv3@techcombank.com.vn
+📧 Email: ngovanduy1991@gmail.com

@@ -67,7 +67,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         if (path.contains("classpath:"))
             return of(path.replace("classpath:", javaPath + File.separatorChar));
         if (path.contains("file:"))
-            return of(path.replace("file:", javaPath + File.separatorChar));
+            return of(path.replace("file:", System.getProperty("user.dir") + File.separatorChar));
         return path;
     }
 
@@ -854,6 +854,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
 
     @AutoDef
     public void uploadFileByDragEvent(String xpath, String filePath) {
+        filePath = getKaratePath(filePath);
         int startX = 0;
         int startY = 0;
         String eCursor = "var cursor = document.getElementById('drag-cursor');";
@@ -901,20 +902,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         delay(300);
 
         // Drop file
-        String dropScript = String.format(
-                "(function() {" +
-                        "  var el = %s;" +
-                        "  var file = new File(['dummy'], '%s', {type: '%s'});" +
-                        "  var dt = new DataTransfer();" +
-                        "  dt.items.add(file);" +
-                        "  el.dispatchEvent(new DragEvent('drop', {bubbles: true, dataTransfer: dt}));" +
-                        "  if (el.files !== undefined) el.files = dt.files;" +
-                        "  el.dispatchEvent(new Event('change', {bubbles: true}));" +
-                        "  el.style.border = '2px solid #4caf50';" +
-                        "  el.style.backgroundColor = '#e8f5e8';" +
-                        "})();",
-                DriverOptions.selector(xpath), file.getName(), mimeType);
-        script(dropScript);
+        uploadFile(xpath, filePath);
 
         // Fade out and remove cursor
         script(String.format("%s if (cursor) cursor.style.opacity = '0.5';", eCursor));
@@ -924,13 +912,14 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
 
     @AutoDef
     public void uploadFile(String inputXpath, String filePath) {
+        filePath = getKaratePath(filePath);
         Logger.info("Uploading file %s to element %s", filePath, inputXpath);
 
         if (!exist(inputXpath)) {
             throw new ElementNotFoundException(inputXpath);
         }
 
-        File file = new File(getKaratePath(filePath));
+        File file = new File(filePath);
         if (!file.exists()) {
             throw new RuntimeException("File not found: " + filePath);
         }
