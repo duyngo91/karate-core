@@ -117,10 +117,9 @@ public class GoldenStateRecorder {
                     meta.setHeight(((Number) data.get("h")).intValue());
 
                 // Generate Embedding
-                String context = "Tag: " + meta.getTagName() +
-                        ", Text: " + meta.getText() +
-                        ", Attributes: " + meta.getAttributes() +
-                        ", Neighbor: " + meta.getNeighborText();
+
+                String context = ElementMetadata.buildEmbed(meta.getTagName(), meta.getText(),
+                        meta.getAttributes(), meta.getNeighborText());
 
                 try {
                     float[] vector = EmbeddingService.getInstance().embed(context);

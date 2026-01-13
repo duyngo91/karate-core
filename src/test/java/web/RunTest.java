@@ -22,6 +22,7 @@ class RunTest {
                 .outputHtmlReport(true)
                 .debugMode(false)
                 .systemProperty("karate.env", "sit")
+                .systemProperty("karate.headless", "true")
                 .customDrivers(DriverFactory.getDrivers())
                 .parallel(1);
 

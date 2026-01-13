@@ -1,11 +1,12 @@
 package core.healing.rag;
 
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.embedding.AllMiniLmL6V2EmbeddingModel;
 import core.platform.utils.Logger;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 
 /**
  * Service to generate embeddings using LangChain4j and a local ONNX model.
+ * https://github.com/langchain4j/langchain4j-examples/blob/main/other-examples/src/main/java/embedding/model/InProcessEmbeddingModelExamples.java
  */
 public class EmbeddingService {
     private static EmbeddingService instance;

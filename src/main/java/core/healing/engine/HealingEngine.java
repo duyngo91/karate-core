@@ -14,8 +14,11 @@ import java.util.*;
 public class HealingEngine {
 
     private final List<HealingStrategy> strategies;
+    private final java.util.concurrent.ForkJoinPool customPool;
+    private final boolean isParallel;
 
     public HealingEngine() {
+        this.isParallel = "PARALLEL".equalsIgnoreCase(HealingConfig.getInstance().getExecutionMode());
         strategies = new ArrayList<>();
         List<String> configStrategies = HealingConfig.getInstance().getStrategies();
 
@@ -38,7 +41,10 @@ public class HealingEngine {
             strategies.add(new RagHealingStrategy());
         }
 
-        Logger.info("Healing Engine initialized with %d strategies", strategies.size());
+        int maxThreads = HealingConfig.getInstance().getMaxHealingThreads();
+        this.customPool = new java.util.concurrent.ForkJoinPool(maxThreads);
+
+        Logger.info("Healing Engine initialized with %d strategies and %d max threads", strategies.size(), maxThreads);
     }
 
     private HealingStrategy createStrategy(String name) {
@@ -68,17 +74,35 @@ public class HealingEngine {
             candidates = candidates.subList(0, HealingConfig.MAX_CANDIDATES);
         }
 
-        Map<ElementNode, ElementScore> scoreMap = new HashMap<>();
+        Map<ElementNode, ElementScore> scoreMap;
 
-        // ===== PHASE 1: DOM STRATEGIES =====
-        for (ElementNode candidate : candidates) {
-            ElementScore elementScore = scoreCandidates(original, candidate);
+        if (isParallel) {
+            scoreMap = new java.util.concurrent.ConcurrentHashMap<>();
+            try {
+                List<ElementNode> finalCandidates = candidates;
+                customPool.submit(() ->
+                    finalCandidates.parallelStream().forEach(candidate -> {
+                        ElementScore elementScore = scoreCandidates(original, candidate);
+                        if (!elementScore.matches.isEmpty()) {
+                            scoreMap.put(candidate, elementScore);
+                        }
+                    })
+                ).get();
+            } catch (Exception e) {
+                Logger.error("Parallel healing failed: %s", e.getMessage());
+            }
+        } else {
+            scoreMap = new HashMap<>();
+            // ===== PHASE 1: DOM STRATEGIES =====
+            for (ElementNode candidate : candidates) {
+                ElementScore elementScore = scoreCandidates(original, candidate);
 
-            if (!elementScore.matches.isEmpty()) {
-                scoreMap.put(candidate, elementScore);
-                if (elementScore.getConfidence() > HealingConfig.CONFIDENCE_WEAK) {
-                    Logger.debug("[Healing] Potential: %s (Conf: %.2f)",
-                            candidate.getTagName(), elementScore.getConfidence());
+                if (!elementScore.matches.isEmpty()) {
+                    scoreMap.put(candidate, elementScore);
+                    if (elementScore.getConfidence() > HealingConfig.CONFIDENCE_WEAK) {
+                        Logger.debug("[Healing] Potential: %s (Conf: %.2f)",
+                                candidate.getTagName(), elementScore.getConfidence());
+                    }
                 }
             }
         }

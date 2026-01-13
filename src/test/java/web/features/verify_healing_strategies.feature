@@ -25,7 +25,7 @@ Feature: Self-Healing Strategy Verification
     * delay(5000)
     * driver.quit()
 
-  @strategy-semantic
+
   Scenario: Verify Semantic and AI Strategies (RAG, SemanticValue)
     Given driver 'https://opensource-demo.orangehrmlive.com/web/index.php/auth/login'
     And delay(5000)

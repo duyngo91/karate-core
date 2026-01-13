@@ -47,6 +47,12 @@ public class HealingConfig {
     @JsonProperty("healingMode")
     public String healingMode = "SAFE"; // Options: "SAFE", "RECKLESS"
 
+    @JsonProperty("executionMode")
+    public String executionMode = "SINGLE"; // Options: "SINGLE", "PARALLEL"
+
+    @JsonProperty("maxHealingThreads")
+    public int maxHealingThreads = 4;
+
     @JsonProperty("locatorPath")
     public String locatorPath = "src/test/java/web/locators";
 
@@ -88,6 +94,16 @@ public class HealingConfig {
     public String getHealingMode() {
         String prop = System.getProperty("healing.mode");
         return prop != null ? prop.toUpperCase() : (healingMode != null ? healingMode.toUpperCase() : "SAFE");
+    }
+
+    public String getExecutionMode() {
+        String prop = System.getProperty("healing.execution.mode");
+        return prop != null ? prop.toUpperCase() : (executionMode != null ? executionMode.toUpperCase() : "SINGLE");
+    }
+
+    public int getMaxHealingThreads() {
+        String prop = System.getProperty("healing.max.threads");
+        return prop != null ? Integer.parseInt(prop) : maxHealingThreads;
     }
 
     public String getLocatorPath() {

@@ -46,11 +46,7 @@ public class RagHealingStrategy implements HealingStrategy {
     }
 
     private float[] getOrGenerateVector(ElementNode node) {
-        String context = "Tag: " + node.getTagName() +
-                ", Text: " + (node.getText() != null ? node.getText() : "") +
-                ", Attributes: " + node.getAttributes() +
-                ", Neighbor: " + (node.getPrevSiblingText() != null ? node.getPrevSiblingText() : "");
-
+        String context = ElementMetadata.buildEmbed(node.getTagName(), node.getText(), node.getAttributes(), node.getPrevSiblingText());
         return EmbeddingService.getInstance().embed(context);
     }
 

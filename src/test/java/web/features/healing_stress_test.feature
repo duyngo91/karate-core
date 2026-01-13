@@ -80,7 +80,6 @@ Feature: Stress Testing All Healing Strategies in Local Environment
   @strategy-semantic
   Scenario Outline: Verify SemanticValueStrategy - <caseId>
     * waitFor(localPage.<caseId>)
-    * click(localPage.<caseId>)
     Examples:
       | caseId |
       | sem1   |

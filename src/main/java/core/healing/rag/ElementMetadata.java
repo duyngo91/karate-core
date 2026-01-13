@@ -129,4 +129,14 @@ public class ElementMetadata {
     public void setHeight(int height) {
         this.height = height;
     }
+    public static String buildEmbed(String tagName, String text,
+                                    Map<String, String> attributes,
+                                    String neighborText) {
+        return "Tag: " + tagName +
+                ", Text: " + (text != null ? text : "") +
+                ", Attributes: " + attributes +
+                ", Neighbor: " + (neighborText != null ? neighborText : "");
+    }
+
+
 }

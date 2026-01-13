@@ -26,6 +26,14 @@ semanticMode: "HYBRID"
 # - RECKLESS: Prioritizes the best single indicator (Max > Mean). Best for high-refactor sites.
 healingMode: "RECKLESS"
 
+# Execution Mode for candidate scoring:
+# - SINGLE: Sequential processing (Standard)
+# - PARALLEL: Multi-threaded processing (Faster for large DOMs)
+executionMode: "PARALLEL"
+
+# Maximum threads to use in PARALLEL mode (prevents CPU exhaustion)
+maxHealingThreads: 4
+
 # Where to look for/store locator metadata
 locatorPath: "src/test/java/web/locators"
 
