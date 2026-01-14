@@ -58,7 +58,7 @@
 - Sử dụng global variables (đã load sẵn):
   ```gherkin
   # ✅ Đúng:
-  * call read(pages.pos.login + '@Login')
+  * call read(pages.systemA.login + '@Login')
   
   # ❌ Sai:
   * def config = read('classpath:karate-config-path.json')
@@ -101,8 +101,8 @@ src/test/resources/locators/web/
 - Features: `web/features/{app}/{module}/{FeatureName}.feature`
 - Pages: `web/pages/{app}/{module}/{FeatureName}Page.feature`
 - Locators: `locators/web/{app}/{module}/{FeatureName}Page.json`
-- Module: snake_case (vd: `danh_sach_lead`, `quan_ly_ho_so`)
-- FeatureName: PascalCase (vd: `QLLead`, `TaoYCBH`)
+- Module: snake_case (vd: `lead_list`, `profile_management`)
+- FeatureName: PascalCase (vd: `LeadManagement`, `CreateProfile`)
 - Cập nhật `karate-config-path.json`
 
 ## Templates
@@ -124,16 +124,16 @@ Feature: {Feature Name}
 
 **Ví dụ thực tế:**
 ```gherkin
-@Regression @Tci @Web @QLLead
-Feature: Danh sach lead
+@Regression @App @Web @LeadManagement
+Feature: Lead list
 
   Background:
-    * call read(pages.tci.login + '@OpenWebAndLogin') {user: '#(tciUser.test.user)', pass: '#(tciUser.test.pass)'}
-    * call read(pages.tci.trangChu + '@ChonMenu') {menu: 'Quản lý Lead'}
+    * call read(pages.app.login + '@OpenWebAndLogin') {user: '#(appUser.test.user)', pass: '#(appUser.test.pass)'}
+    * call read(pages.app.homePage + '@ChonMenu') {menu: 'Lead Management'}
 
-  @TimKiemLead
+  @SearchLead
   Scenario: Tìm kiếm lead theo mã lead và trạng thái
-    * call read(pages.tci.lead + '@TimKiemLead') { maLead: 'LEAD001', trangThai: 'Mới'}
+    * call read(pages.app.lead + '@SearchLead') { maLead: 'LEAD001', trangThai: 'Mới'}
 ```
 
 ### JSON Locator
@@ -167,12 +167,12 @@ Feature: {AppName} - {PageName} Page
 
 **Ví dụ thực tế:**
 ```gherkin
-Feature: TechcomInsurance - Quan ly Lead Page
+Feature: InsuranceApp - Quan ly Lead Page
 
   Background:
-    * def qll = read(locators.tci + 'danh_sach_lead/QLLeadPage.json')
+    * def qll = read(locators.app + 'lead_list/LeadManagementPage.json')
 
-  @TimKiemLead
+  @SearchLead
   Scenario:
     * if(__arg.maLead) waitFor(qll.txtMaLead).input(__arg.maLead)
     * if(__arg.sanpham) waitFor(qll.dlSanPham).click()
@@ -185,24 +185,24 @@ Feature: TechcomInsurance - Quan ly Lead Page
 ### Global Variables (Auto-loaded)
 
 - **Pages**: `pages.{app}.{pageName}` - Page feature paths
-- **Locators**: `locators.{app}` - Locator base path (e.g., locators.bpa, locators.tci)
+- **Locators**: `locators.{app}` - Locator base path (e.g., locators.app, locators.systemB)
 - **Data**: `dataPath.{app}.{module}` - Test data paths
-- **URLs**: `{app}Url` - Application URLs (e.g., bpaUrl, tciUrl, crmUrl)
-- **Users**: `{app}User.{role}.user/pass` - User credentials (e.g., bpaUser.test.user)
+- **URLs**: `{app}Url` - Application URLs (e.g., appUrl, systemBUrl, systemCUrl)
+- **Users**: `{app}User.{role}.user/pass` - User credentials (e.g., appUser.test.user)
 
 ### Naming Convention
 
-- `{app}` = tci, crm, bpa, sales (lowercase)
-- `{module}` = snake_case (vd: danh_sach_lead, quan_ly_ho_so, quan_ly_hop_dong)
-- `{PageName}` = PascalCase (vd: QLLeadPage, TaoYCBHPage, LoginPage)
-- `{FeatureName}` = PascalCase (vd: QLLead, TaoYCBH, Login)
-- `{functionName}` = PascalCase cho @tag (vd: @TimKiemLead, @TaoYCBH)
+- `{app}` = app, systemC, systemB, sales (lowercase)
+- `{module}` = snake_case (vd: lead_list, profile_management, contract_management)
+- `{PageName}` = PascalCase (vd: LeadManagementPage, CreateProfilePage, LoginPage)
+- `{FeatureName}` = PascalCase (vd: LeadManagement, CreateProfile, Login)
+- `{functionName}` = PascalCase cho @tag (vd: @SearchLead, @CreateRequest)
 - `{env}` = sit, uat, dev, prod
 
 **Ví dụ:**
-- Feature: `web/features/tci/danh_sach_lead/QLLead.feature`
-- Page: `web/pages/tci/quan_ly_lead/QLLeadPage.feature`
-- Locator: `locators/web/tci/danh_sach_lead/QLLeadPage.json`
+- Feature: `web/features/app/lead_list/LeadManagement.feature`
+- Page: `web/pages/app/lead_list/LeadManagementPage.feature`
+- Locator: `locators/web/app/lead_list/LeadManagementPage.json`
 
 ## Constraints
 
@@ -214,30 +214,30 @@ Feature: TechcomInsurance - Quan ly Lead Page
 - **Pattern đúng cho locators**:
   ```gherkin
   # ✅ ĐÚNG:
-  * def locators = read(locators.tci + 'danh_sach_lead/QLLeadPage.json')
-  * def login = read(locators.tci + 'LoginPage.json')
+  * def locators = read(locators.app + 'lead_list/LeadManagementPage.json')
+  * def login = read(locators.app + 'LoginPage.json')
   
   # ❌ SAI:
-  * def locators = read(locatorSP + 'QLLeadPage.json')
+  * def locators = read(locatorSP + 'LeadManagementPage.json')
   ```
 - **Pattern đúng cho call page**:
   ```gherkin
   # ✅ ĐÚNG:
-  * call read(pages.tci.login + '@OpenWebAndLogin') {user: '#(tciUser.test.user)', pass: '#(tciUser.test.pass)'}
-  * call read(pages.tci.lead + '@TimKiemLead') {maLead: 'LEAD001'}
+  * call read(pages.app.login + '@OpenWebAndLogin') {user: '#(appUser.test.user)', pass: '#(appUser.test.pass)'}
+  * call read(pages.app.lead + '@SearchLead') {maLead: 'LEAD001'}
   
   # ❌ SAI - Gây lỗi:
-  * def loginPage = call read(pages.tci.login)
-  * call loginPage@OpenWebAndLogin {user: '#(tciUser.test.user)'}
+  * def loginPage = call read(pages.app.login)
+  * call loginPage@OpenWebAndLogin {user: '#(appUser.test.user)'}
   ```
 - **Pattern đúng cho driver URL**:
   ```gherkin
   # ✅ ĐÚNG:
-  * driver tciUrl
+  * driver appUrl
   * driver salesUrl + '/login'
   
   # ❌ SAI:
-  * driver 'https://sales-sit.techcomlife.com.vn/login'
+  * driver 'https://app-sit.example.com/login'
   ```
 - **Cấu trúc thư mục**:
   ```

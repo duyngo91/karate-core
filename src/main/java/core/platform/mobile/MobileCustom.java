@@ -19,10 +19,9 @@ import core.platform.mobile.models.ListActions;
 import core.platform.utils.Logger;
 import core.platform.web.wait.Wait;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public abstract class MobileCustom extends AppiumDriver {
@@ -407,5 +406,57 @@ public abstract class MobileCustom extends AppiumDriver {
     @AutoDef
     public abstract MobileCustom simulateFingerprint(boolean match);
 
+    @AutoDef
+    public String getPageSource() {
+        return http.path("source").get().json().get(VALUE_KEY);
+    }
 
+    @AutoDef
+    public List<Map<String, Object>> getAllElementsInfo() {
+        String xml = getPageSource();
+        List<Map<String, Object>> elements = new ArrayList<>();
+        String[] lines = xml.split("\n");
+        for (String line : lines){
+            if(line.contains("class=\"") && (
+                    line.contains("text=\"") ||
+                    line.contains("resource-id=\"") ||
+                    line.contains("content-desc=\"") ||
+                    line.contains("clickable=\"true\"")
+            )){
+                Map<String, Object> element = new HashMap<>();
+                element.put("text", extractAttr(line, "text"));
+                element.put("resource-id", extractAttr(line, "resource-id"));
+                element.put("content-desc", extractAttr(line, "content-desc"));
+                element.put("clickable", extractAttr(line, "clickable"));
+                element.put("enabled", extractAttr(line, "enabled"));
+                element.put("bounds", extractAttr(line, "bounds"));
+
+                List<String> locators = new ArrayList<>();
+                String rid = (String) element.get("resource-id");
+                String txt = (String) element.get("text");
+                String desc = (String) element.get("content-desc");
+
+                if(rid != null && !rid.isEmpty()){
+                    locators.add("//*[@resource-id='" + rid + "']");
+                }
+                if(txt != null && !txt.isEmpty()){
+                    locators.add("//*[@text='" + txt + "']");
+                }
+                if(desc != null && !desc.isEmpty()){
+                    locators.add("//*[@content-desc='" + desc + "']");
+                }
+
+                element.put("locators", locators);
+                if(!locators.isEmpty()) elements.add(element);
+            }
+        }
+        return elements;
+    }
+
+    private String extractAttr(String line, String attr){
+        String pattern = attr + "=\"([^\"]*)\"";
+        Pattern p = Pattern.compile(pattern);
+        Matcher m = p.matcher(line);
+        return m.find() ? m.group(1) : null;
+    }
 }

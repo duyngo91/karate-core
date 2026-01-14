@@ -62,14 +62,14 @@ Chỉ tạo 2 files cho mỗi feature:
   ```
   Structure:
   src/test/java/web/
-  ├── features/tci/danh_sach_lead/
-  │   └── QLLead.feature
-  ├── pages/tci/quan_ly_lead/
-  │   ├── QLLeadPage.feature
-  │   └── TaoYCBHPage.feature
-  └── locators/web/tci/danh_sach_lead/
-      ├── QLLeadPage.json
-      └── TaoYCBHPage.json
+  ├── features/app/lead_list/
+  │   └── LeadManagement.feature
+  ├── pages/app/lead_management/
+  │   ├── LeadManagementPage.feature
+  │   └── CreateRequestPage.feature
+  └── locators/web/app/lead_list/
+      ├── LeadManagementPage.json
+      └── CreateRequestPage.json
   ```
 ```
 

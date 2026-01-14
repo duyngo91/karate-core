@@ -21,7 +21,9 @@
         "description": "URL to navigate to"
       }
     },
-    "required": ["url"],
+    "required": [
+      "url"
+    ],
     "additionalProperties": false
   },
   "click": {
@@ -32,7 +34,9 @@
         "description": "Element locator (CSS selector, XPath, etc.)"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "mouse_click": {
@@ -43,7 +47,9 @@
         "description": "Element locator for natural mouse click simulation"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "input": {
@@ -58,7 +64,10 @@
         "description": "Text to input"
       }
     },
-    "required": ["locator", "text"],
+    "required": [
+      "locator",
+      "text"
+    ],
     "additionalProperties": false
   },
   "input_value": {
@@ -73,7 +82,10 @@
         "description": "Value to input with event dispatch"
       }
     },
-    "required": ["locator", "value"],
+    "required": [
+      "locator",
+      "value"
+    ],
     "additionalProperties": false
   },
   "clear": {
@@ -84,7 +96,9 @@
         "description": "Element locator"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "get_text": {
@@ -95,7 +109,9 @@
         "description": "Element locator"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "wait_exist": {
@@ -114,7 +130,9 @@
         "description": "Interval between retries in milliseconds (default: null)"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "droplist_select": {
@@ -134,7 +152,10 @@
         "description": "Option text to select"
       }
     },
-    "required": ["locator", "value"],
+    "required": [
+      "locator",
+      "value"
+    ],
     "additionalProperties": false
   },
   "droplist_get_options": {
@@ -150,7 +171,9 @@
         "description": "Items locator (optional)"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "table_get_data": {
@@ -165,7 +188,9 @@
         "description": "Table row locator (optional)"
       }
     },
-    "required": ["header_locator"],
+    "required": [
+      "header_locator"
+    ],
     "additionalProperties": false
   },
   "checkbox_set": {
@@ -180,7 +205,10 @@
         "description": "Desired checked state"
       }
     },
-    "required": ["locator", "checked"],
+    "required": [
+      "locator",
+      "checked"
+    ],
     "additionalProperties": false
   },
   "switch_tab": {
@@ -191,7 +219,9 @@
         "description": "Tab title to switch to"
       }
     },
-    "required": ["title"],
+    "required": [
+      "title"
+    ],
     "additionalProperties": false
   },
   "take_screenshot": {
@@ -212,7 +242,9 @@
         "description": "Element locator"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "upload_file": {
@@ -227,7 +259,10 @@
         "description": "Path to file to upload"
       }
     },
-    "required": ["locator", "file_path"],
+    "required": [
+      "locator",
+      "file_path"
+    ],
     "additionalProperties": false
   },
   "get_attribute": {
@@ -242,7 +277,10 @@
         "description": "Attribute name"
       }
     },
-    "required": ["locator", "attribute"],
+    "required": [
+      "locator",
+      "attribute"
+    ],
     "additionalProperties": false
   },
   "execute_script": {
@@ -253,7 +291,9 @@
         "description": "JavaScript code to execute"
       }
     },
-    "required": ["script"],
+    "required": [
+      "script"
+    ],
     "additionalProperties": false
   },
   "select_option": {
@@ -268,7 +308,10 @@
         "description": "Option text or value"
       }
     },
-    "required": ["locator", "option"],
+    "required": [
+      "locator",
+      "option"
+    ],
     "additionalProperties": false
   },
   "get_page_title": {
@@ -301,7 +344,10 @@
         "description": "Partial option text to select"
       }
     },
-    "required": ["locator", "value"],
+    "required": [
+      "locator",
+      "value"
+    ],
     "additionalProperties": false
   },
   "droplist_search_select": {
@@ -329,7 +375,12 @@
         "description": "Value to select"
       }
     },
-    "required": ["locator", "search_field", "search_value", "select_value"],
+    "required": [
+      "locator",
+      "search_field",
+      "search_value",
+      "select_value"
+    ],
     "additionalProperties": false
   },
   "droplist_get_selected": {
@@ -345,7 +396,9 @@
         "description": "Items locator (optional)"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "switch_tab_contains": {
@@ -356,7 +409,9 @@
         "description": "Partial tab title to search for"
       }
     },
-    "required": ["title"],
+    "required": [
+      "title"
+    ],
     "additionalProperties": false
   },
   "open_new_tab": {
@@ -367,7 +422,9 @@
         "description": "URL to open in new tab"
       }
     },
-    "required": ["url"],
+    "required": [
+      "url"
+    ],
     "additionalProperties": false
   },
   "close_tab": {
@@ -378,7 +435,9 @@
         "description": "Tab title to close"
       }
     },
-    "required": ["title"],
+    "required": [
+      "title"
+    ],
     "additionalProperties": false
   },
   "get_tabs": {
@@ -393,7 +452,9 @@
         "description": "Checkbox element locator"
       }
     },
-    "required": ["locator"],
+    "required": [
+      "locator"
+    ],
     "additionalProperties": false
   },
   "table_get_headers": {
@@ -404,7 +465,9 @@
         "description": "Table header xpath locator"
       }
     },
-    "required": ["header_locator"],
+    "required": [
+      "header_locator"
+    ],
     "additionalProperties": false
   },
   "table_get_row_data": {
@@ -423,7 +486,10 @@
         "description": "Row index (0-based)"
       }
     },
-    "required": ["header_locator", "row_index"],
+    "required": [
+      "header_locator",
+      "row_index"
+    ],
     "additionalProperties": false
   },
   "table_count_rows": {
@@ -438,7 +504,9 @@
         "description": "Table row xpath locator (optional)"
       }
     },
-    "required": ["header_locator"],
+    "required": [
+      "header_locator"
+    ],
     "additionalProperties": false
   },
   "table_is_empty": {
@@ -453,7 +521,9 @@
         "description": "Table row xpath locator (optional)"
       }
     },
-    "required": ["header_locator"],
+    "required": [
+      "header_locator"
+    ],
     "additionalProperties": false
   },
   "start_recording": {
@@ -464,17 +534,6 @@
   "stop_recording": {
     "type": "object",
     "description": "Stop recording and return the generated Karate .feature file content as a string. The output includes Feature, Background, and Scenario with all recorded steps in Karate DSL syntax.",
-    "additionalProperties": false
-  },
-  "set_function_name": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "type": "string",
-        "description": "Function name for page object template generation"
-      }
-    },
-    "required": ["name"],
     "additionalProperties": false
   },
   "get_driver_status": {
@@ -494,7 +553,9 @@
         "description": "API URL pattern to match"
       }
     },
-    "required": ["url"],
+    "required": [
+      "url"
+    ],
     "additionalProperties": false
   },
   "get_request_api": {
@@ -506,51 +567,114 @@
         "description": "API URL pattern to match"
       }
     },
-    "required": ["url"],
+    "required": [
+      "url"
+    ],
     "additionalProperties": false
   },
   "enable_network_events": {
     "type": "object",
     "additionalProperties": false
   },
-  "generate_test_from_nl": {
+  "connect_android": {
     "type": "object",
-    "description": "Generate Karate test script from natural language description",
+    "description": "Initialize and connect to android device",
     "properties": {
-      "description": {
+      "info": {
         "type": "string",
-        "description": "Natural language description of the test scenario. Example: 'Navigate to https://example.com, click Login button, enter username admin, enter password 123456, click Submit, verify Welcome message'"
+        "description": "JSON string of Android capabilities (e.g. '{\"type\":\"AndroidCustom\",\"class\":\"core.platform.mobile.AndroidCustom\",\"webDriverUrl\":\"http://127.0.0.1:4723\",\"showDriverLog\":false,\"start\":false,\"webDriverSession\":{\"capabilities\":{\"alwaysMatch\":{\"platformName\":\"Android\",\"appium:automationName\":\"UiAutomator2\",\"appium:deviceName\":\"Android Emulator\",\"appium:appPackage\":\"com.android.settings\",\"appium:appActivity\":\"com.android.settings.Settings\",\"appium:appWaitActivity\":\"com.android.settings.*\",\"appium:skipServerInstallation\":false,\"appium:fullReset\":false,\"appium:noReset\":false,\"appium:uuid\":null,\"appium:autoGrantPermissions\":true,\"appium:ignoreHiddenApiPolicyError\":true,\"appium:disableWindowAnimation\":true}}}}')"
       }
     },
-    "required": ["description"],
+    "required": [
+      "capabilities"
+    ],
     "additionalProperties": false
   },
-  "parse_test_scenario": {
+  "mobile_click": {
     "type": "object",
-    "description": "Parse natural language test scenario into structured format",
+    "description": "Click on mobile element",
     "properties": {
-      "description": {
-        "type": "string",
-        "description": "Natural language test scenario to parse"
-      }
-    },
-    "required": ["description"],
-    "additionalProperties": false
-  },
-  "heal_locator": {
-    "type": "object",
-    "description": "Self-heal broken locator using semantic (ARIA, role, test-id) and learning-based strategies. Automatically finds working alternative locators and learns from history.",
-    "properties": {
-      "element_id": {
-        "type": "string",
-        "description": "Unique identifier for the element (e.g., 'loginButton', 'usernameField'). Used for learning and history tracking."
-      },
       "locator": {
         "type": "string",
-        "description": "Original locator that may be broken (XPath, CSS selector, etc.)"
+        "description": "Mobile element locator"
       }
     },
-    "required": ["element_id", "locator"],
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  },
+  "mobile_input": {
+    "type": "object",
+    "description": "Input text to mobile element",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Mobile element locator"
+      },
+      "text": {
+        "type": "string",
+        "description": "Text to input"
+      }
+    },
+    "required": [
+      "locator",
+      "text"
+    ],
+    "additionalProperties": false
+  },
+  "mobile_swipe": {
+    "type": "object",
+    "description": "Perform swipe gesture",
+    "properties": {
+      "fromX": {
+        "type": "number"
+      },
+      "fromY": {
+        "type": "number"
+      },
+      "toX": {
+        "type": "number"
+      },
+      "toY": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "fromX",
+      "fromY",
+      "toX",
+      "toY"
+    ],
+    "additionalProperties": false
+  },
+  "mobile_scroll_to_element": {
+    "type": "object",
+    "description": "Scroll to find mobile element",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Mobile element locator"
+      }
+    },
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  },
+  "mobile_close": {
+    "type": "object",
+    "description": "Close mobile driver",
+    "additionalProperties": false
+  },
+  "mobile_get_page_source": {
+    "type": "object",
+    "description": "Get mobile page source",
+    "additionalProperties": false
+  },
+  "mobile_get_all_elements": {
+    "type": "object",
+    "description": "Get all UI Elements with locators",
     "additionalProperties": false
   }
 }

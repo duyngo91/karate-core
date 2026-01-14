@@ -30,6 +30,6 @@ public class Logger {
     private static void log(String level, String message, Object... args) {
         String timestamp = LocalDateTime.now().format(FORMATTER);
         String formattedMessage = String.format(message, args);
-        System.out.printf("[%s] %s - %s%n", timestamp, level, formattedMessage);
+        System.err.printf("[%s] %s - %s%n", timestamp, level, formattedMessage);
     }
 }

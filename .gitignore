@@ -7,3 +7,4 @@ target/
 
 /locator-history.json
 /dependency-reduced-pom.xml
+/karate-mcp-server.jar
