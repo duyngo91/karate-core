@@ -36,7 +36,8 @@ public class AndroidTest {
                                 "appium:uuid" : null,
                                 "appium:autoGrantPermissions" : true,
                                 "appium:ignoreHiddenApiPolicyError" : true,
-                                "appium:disableWindowAnimation" : true
+                                "appium:disableWindowAnimation" : true,
+                                "appium:newCommandTimeout" : 120000
                             }
                         }
                      }

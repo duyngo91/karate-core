@@ -30,7 +30,7 @@ public class MobileTools {
     private static void addMobileTools(List<McpServerFeatures.SyncToolSpecification> tools) {
         tools.add(createTool("connect_android", "Initialize and connect to android device", (exchange, args) -> {
             try {
-                String capabilities = (String) args.get("capabilities");
+                String capabilities = (String) args.get("info");
                 Gson gson = new Gson();
                 Type type = new TypeToken<Map<String, Object>>() {}.getType();
                 Map<String, Object> map = gson.fromJson(capabilities, type);
