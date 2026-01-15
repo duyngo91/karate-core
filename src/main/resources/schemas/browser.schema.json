@@ -1,0 +1,82 @@
+{
+  "init_browser": {
+    "type": "object",
+    "properties": {
+      "headless": {
+        "type": "boolean",
+        "description": "Run browser in headless mode"
+      },
+      "reuse": {
+        "type": "boolean",
+        "description": "Reuse existing driver if available"
+      }
+    },
+    "additionalProperties": false
+  },
+  "navigate": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "URL to navigate to"
+      }
+    },
+    "required": [
+      "url"
+    ],
+    "additionalProperties": false
+  },
+  "get_page_title": {
+    "description": "Get page title",
+    "args": {}
+  },
+  "close": {
+    "description": "Close browser",
+    "args": {}
+  },
+  "execute_script": {
+    "description": "Execute JavaScript in browser and return result",
+    "args": {
+      "script": {
+        "type": "string",
+        "description": "JavaScript code to execute in browser context"
+      }
+    },
+    "returns": {
+      "type": "string",
+      "description": "Result returned from executed script"
+    }
+  },
+  "get_response_api": {
+    "type": "object",
+    "description": "Get API response data. NOTE: Must call enable_network_events first",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "API URL pattern to match"
+      }
+    },
+    "required": [
+      "url"
+    ],
+    "additionalProperties": false
+  },
+  "get_request_api": {
+    "type": "object",
+    "description": "Get API request data. NOTE: Must call enable_network_events first",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "API URL pattern to match"
+      }
+    },
+    "required": [
+      "url"
+    ],
+    "additionalProperties": false
+  },
+  "enable_network_events": {
+    "type": "object",
+    "additionalProperties": false
+  }
+}

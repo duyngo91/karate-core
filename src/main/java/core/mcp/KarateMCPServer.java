@@ -1,6 +1,8 @@
 package core.mcp;
 
 import core.mcp.schema.SchemaLoader;
+import core.mcp.tools.MobileTools;
+import core.mcp.tools.web.*;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.server.McpSyncServer;
@@ -37,7 +39,12 @@ public class KarateMCPServer {
 
     private static List<McpServerFeatures.SyncToolSpecification> getTools() {
         List<McpServerFeatures.SyncToolSpecification> tools = new ArrayList<>();
-        tools.addAll(WebTools.getTools());
+        tools.addAll(BrowserTools.getTools());
+        tools.addAll(CheckBoxTools.getTools());
+        tools.addAll(DropListTools.getTools());
+        tools.addAll(FormTools.getTools());
+        tools.addAll(TableTools.getTools());
+        tools.addAll(TabTools.getTools());
         tools.addAll(MobileTools.getTools());
         return tools;
     }

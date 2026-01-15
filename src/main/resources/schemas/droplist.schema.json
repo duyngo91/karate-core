@@ -1,0 +1,99 @@
+{
+  "droplist_select": {
+    "type": "object",
+    "description": "PRIORITY: Use for all dropdown/select operations instead of click() or execute_script()",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      },
+      "value": {
+        "type": "string",
+        "description": "Option text to select"
+      }
+    },
+    "required": [
+      "locator",
+      "value"
+    ],
+    "additionalProperties": false
+  },
+  "droplist_get_options": {
+    "type": "object",
+    "description": "PRIORITY: Use to get dropdown options instead of execute_script()",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      }
+    },
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  },
+  "droplist_select_contains": {
+    "type": "object",
+    "description": "PRIORITY: Use for partial text dropdown selection instead of click()",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      },
+      "value": {
+        "type": "string",
+        "description": "Partial option text to select"
+      }
+    },
+    "required": [
+      "locator",
+      "value"
+    ],
+    "additionalProperties": false
+  },
+  "droplist_search_select": {
+    "type": "object",
+    "description": "PRIORITY: Use for searchable dropdown operations",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Droplist element locator"
+      },
+      "search_field": {
+        "type": "string",
+        "description": "Search field locator"
+      },
+      "items": {
+        "type": "string",
+        "description": "Items locator (optional)"
+      },
+      "search_value": {
+        "type": "string",
+        "description": "Value to search for"
+      },
+      "select_value": {
+        "type": "string",
+        "description": "Value to select"
+      }
+    },
+    "required": [
+      "locator",
+      "search_field",
+      "search_value",
+      "select_value"
+    ],
+    "additionalProperties": false
+  }
+}

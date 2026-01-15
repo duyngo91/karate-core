@@ -1,0 +1,72 @@
+{
+  "click": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator (CSS selector, XPath, etc.)"
+      }
+    },
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  },
+  "mouse_click": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator for natural mouse click simulation"
+      }
+    },
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  },
+  "input": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      },
+      "text": {
+        "type": "string",
+        "description": "Text to input"
+      }
+    },
+    "required": [
+      "locator",
+      "text"
+    ],
+    "additionalProperties": false
+  },
+  "clear": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      }
+    },
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  },
+  "get_text": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Element locator"
+      }
+    },
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  }
+}

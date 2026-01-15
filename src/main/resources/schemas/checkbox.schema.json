@@ -1,0 +1,33 @@
+{
+  "checkbox_set": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Checkbox element locator"
+      },
+      "checked": {
+        "type": "boolean",
+        "description": "Desired checked state"
+      }
+    },
+    "required": [
+      "locator",
+      "checked"
+    ],
+    "additionalProperties": false
+  },
+  "checkbox_is_checked": {
+    "type": "object",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Checkbox element locator"
+      }
+    },
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "open_new_tab": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "URL to open in new tab"
+      }
+    },
+    "required": [
+      "url"
+    ],
+    "additionalProperties": false
+  },
+  "switch_tab": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Tab title to switch to"
+      }
+    },
+    "required": [
+      "title"
+    ],
+    "additionalProperties": false
+  },
+  "switch_tab_contains": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Partial tab title to search for"
+      }
+    },
+    "required": [
+      "title"
+    ],
+    "additionalProperties": false
+  },
+  "close_tab": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Tab title to close"
+      }
+    },
+    "required": [
+      "title"
+    ],
+    "additionalProperties": false
+  },
+  "get_tabs": {
+    "type": "object",
+    "additionalProperties": false
+  }
+}

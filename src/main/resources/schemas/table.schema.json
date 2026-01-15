@@ -1,0 +1,19 @@
+{
+  "table_get_data": {
+    "type": "object",
+    "properties": {
+      "header_locator": {
+        "type": "string",
+        "description": "Table header xpath locator"
+      },
+      "row_locator": {
+        "type": "string",
+        "description": "Table row locator (optional)"
+      }
+    },
+    "required": [
+      "header_locator"
+    ],
+    "additionalProperties": false
+  }
+}

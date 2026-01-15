@@ -1,0 +1,35 @@
+{
+  "connect_android": {
+    "type": "object",
+    "description": "Initialize and connect to android device",
+    "properties": {
+      "info": {
+        "type": "string",
+        "description": "JSON string of Android capabilities (e.g. '{\"type\":\"AndroidCustom\",\"class\":\"core.platform.mobile.AndroidCustom\",\"webDriverUrl\":\"http://127.0.0.1:4723\",\"showDriverLog\":false,\"start\":false,\"webDriverSession\":{\"capabilities\":{\"alwaysMatch\":{\"platformName\":\"Android\",\"appium:automationName\":\"UiAutomator2\",\"appium:deviceName\":\"Android Emulator\",\"appium:appPackage\":\"com.android.settings\",\"appium:appActivity\":\"com.android.settings.Settings\",\"appium:appWaitActivity\":\"com.android.settings.*\",\"appium:skipServerInstallation\":false,\"appium:fullReset\":false,\"appium:noReset\":false,\"appium:uuid\":null,\"appium:autoGrantPermissions\":true,\"appium:ignoreHiddenApiPolicyError\":true,\"appium:disableWindowAnimation\":true}}}}')"
+      }
+    },
+    "required": [
+      "capabilities"
+    ],
+    "additionalProperties": false
+  },
+  "mobile_click": {
+    "type": "object",
+    "description": "Click on mobile element",
+    "properties": {
+      "locator": {
+        "type": "string",
+        "description": "Mobile element locator"
+      }
+    },
+    "required": [
+      "locator"
+    ],
+    "additionalProperties": false
+  },
+  "mobile_close": {
+    "type": "object",
+    "description": "Close mobile driver",
+    "additionalProperties": false
+  }
+}
