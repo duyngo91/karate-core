@@ -1,6 +1,7 @@
 package core.healing.utils;
 
 import org.apache.commons.text.similarity.LevenshteinDistance;
+
 import java.util.Map;
 
 public class SimilarityUtil {

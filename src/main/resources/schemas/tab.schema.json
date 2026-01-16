@@ -2,6 +2,10 @@
   "open_new_tab": {
     "type": "object",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "url": {
         "type": "string",
         "description": "URL to open in new tab"
@@ -15,6 +19,10 @@
   "switch_tab": {
     "type": "object",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "title": {
         "type": "string",
         "description": "Tab title to switch to"
@@ -28,6 +36,10 @@
   "switch_tab_contains": {
     "type": "object",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "title": {
         "type": "string",
         "description": "Partial tab title to search for"
@@ -41,6 +53,10 @@
   "close_tab": {
     "type": "object",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "title": {
         "type": "string",
         "description": "Tab title to close"
@@ -53,6 +69,12 @@
   },
   "get_tabs": {
     "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      }
+    },
     "additionalProperties": false
   }
 }

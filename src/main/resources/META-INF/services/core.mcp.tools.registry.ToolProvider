@@ -1,0 +1,9 @@
+core.mcp.tools.record.RecordingTools
+core.mcp.tools.web.TabTools
+core.mcp.tools.web.TableTools
+core.mcp.tools.web.FormTools
+core.mcp.tools.web.BrowserTools
+core.mcp.tools.web.DropListTools
+core.mcp.tools.web.FileTools
+core.mcp.tools.web.CheckBoxTools
+core.mcp.tools.mobile.MobileTools

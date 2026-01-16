@@ -1,7 +1,7 @@
 package core.healing.rag;
 
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import core.platform.utils.Logger;
+import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 
 /**

@@ -1,7 +1,7 @@
 package core.mcp.record.render;
 
-import core.mcp.record.steps.RecordedStep;
 import core.mcp.record.mapper.StepMapper;
+import core.mcp.record.steps.RecordedStep;
 
 import java.util.List;
 

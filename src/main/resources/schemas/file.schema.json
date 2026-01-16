@@ -1,0 +1,96 @@
+{
+  "download_file_from_url": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
+      "url": {
+        "type": "string",
+        "description": "URL of file to download"
+      },
+      "file_name": {
+        "type": "string",
+        "description": "Name to save the file as"
+      }
+    },
+    "required": ["url", "file_name"],
+    "additionalProperties": false
+  },
+  "upload_file_by_drag": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
+      "locator": {
+        "type": "string",
+        "description": "Element locator to drop file"
+      },
+      "file_path": {
+        "type": "string",
+        "description": "Path to file to upload"
+      }
+    },
+    "required": ["locator", "file_path"],
+    "additionalProperties": false
+  },
+  "download_confluence_diagram": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
+      "page_id": {
+        "type": "string",
+        "description": "Confluence page ID"
+      },
+      "diagram_name": {
+        "type": "string",
+        "description": "Diagram name to search for (partial match)"
+      },
+      "base_url": {
+        "type": "string",
+        "description": "Confluence base URL (e.g., https://confluence.example.com)"
+      },
+      "save_path": {
+        "type": "string",
+        "description": "Path to save the diagram XML file"
+      }
+    },
+    "required": ["page_id", "diagram_name", "base_url", "save_path"],
+    "additionalProperties": false
+  },
+  "get_confluence_attachments": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
+      "page_id": {
+        "type": "string",
+        "description": "Confluence page ID"
+      },
+      "base_url": {
+        "type": "string",
+        "description": "Confluence base URL (e.g., https://confluence.example.com)"
+      }
+    },
+    "required": ["page_id", "base_url"],
+    "additionalProperties": false
+  },
+  "get_confluence_page_id": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      }
+    },
+    "additionalProperties": false
+  }
+}

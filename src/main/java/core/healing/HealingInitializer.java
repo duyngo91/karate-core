@@ -1,6 +1,7 @@
 package core.healing;
 
 import core.platform.utils.Logger;
+
 import java.io.File;
 
 public class HealingInitializer {

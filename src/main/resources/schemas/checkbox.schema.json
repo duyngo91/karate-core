@@ -2,6 +2,10 @@
   "checkbox_set": {
     "type": "object",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "locator": {
         "type": "string",
         "description": "Checkbox element locator"
@@ -20,6 +24,10 @@
   "checkbox_is_checked": {
     "type": "object",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "locator": {
         "type": "string",
         "description": "Checkbox element locator"

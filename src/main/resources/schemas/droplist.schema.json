@@ -3,6 +3,10 @@
     "type": "object",
     "description": "PRIORITY: Use for all dropdown/select operations instead of click() or execute_script()",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "locator": {
         "type": "string",
         "description": "Droplist element locator"
@@ -26,6 +30,10 @@
     "type": "object",
     "description": "PRIORITY: Use to get dropdown options instead of execute_script()",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "locator": {
         "type": "string",
         "description": "Droplist element locator"
@@ -44,6 +52,10 @@
     "type": "object",
     "description": "PRIORITY: Use for partial text dropdown selection instead of click()",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "locator": {
         "type": "string",
         "description": "Droplist element locator"
@@ -67,6 +79,10 @@
     "type": "object",
     "description": "PRIORITY: Use for searchable dropdown operations",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "locator": {
         "type": "string",
         "description": "Droplist element locator"

@@ -1,0 +1,20 @@
+{
+  "start_recording": {
+    "type": "object",
+    "description": "Start recording Karate script",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "stop_recording": {
+    "type": "object",
+    "description": "Stop recording and save Karate script",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "get_recorded_script": {
+    "type": "object",
+    "description": "Get recorded Karate script",
+    "properties": {},
+    "additionalProperties": false
+  }
+}

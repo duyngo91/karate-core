@@ -1,6 +1,7 @@
 package core.healing;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LocatorMapper {
     private static LocatorMapper instance;

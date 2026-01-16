@@ -2,15 +2,15 @@ package core.mcp.record;
 
 import core.mcp.record.steps.RecordedStep;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ScriptRecorder {
 
     private static final ScriptRecorder INSTANCE = new ScriptRecorder();
-    private final List<RecordedStep> steps = new ArrayList<>();
-    private boolean recording;
+    private final List<RecordedStep> steps = new CopyOnWriteArrayList<>();
+    private volatile boolean recording;
 
     public static ScriptRecorder getInstance() {
         return INSTANCE;

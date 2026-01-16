@@ -2,7 +2,6 @@ package core.healing.strategy;
 
 import core.healing.model.ElementNode;
 import core.healing.utils.SemanticMatcher;
-import core.platform.utils.Logger;
 
 /**
  * NeighborStrategy (Contextual Healing).

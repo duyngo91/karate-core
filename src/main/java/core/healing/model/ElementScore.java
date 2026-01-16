@@ -1,9 +1,6 @@
 package core.healing.model;
 
 import core.healing.HealingConfig;
-import core.healing.model.ElementNode;
-import core.healing.model.HealingResult;
-import core.healing.model.StrategyMatch;
 
 import java.util.ArrayList;
 import java.util.Comparator;

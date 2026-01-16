@@ -27,19 +27,19 @@ public class HealingConfig {
     public static final int MAX_CANDIDATES = 100;
 
     @JsonProperty("enabled")
-    public boolean enabled = true;
+    public boolean enabled = false;
 
     @JsonProperty("captureGoldenState")
-    public boolean captureGoldenState = true;
+    public boolean captureGoldenState = false;
 
     @JsonProperty("ragEnabled")
-    public boolean ragEnabled = true;
+    public boolean ragEnabled = false;
 
     @JsonProperty("cacheEnabled")
-    public boolean cacheEnabled = true;
+    public boolean cacheEnabled = false;
 
     @JsonProperty("semanticEnabled")
-    public boolean semanticEnabled = true;
+    public boolean semanticEnabled = false;
 
     @JsonProperty("semanticMode")
     public String semanticMode = "HYBRID"; // Options: "LEGACY", "HYBRID"

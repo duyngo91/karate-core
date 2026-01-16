@@ -2,6 +2,10 @@
   "table_get_data": {
     "type": "object",
     "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      },
       "header_locator": {
         "type": "string",
         "description": "Table header xpath locator"

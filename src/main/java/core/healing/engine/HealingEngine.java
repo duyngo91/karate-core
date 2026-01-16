@@ -18,33 +18,39 @@ public class HealingEngine {
     private final boolean isParallel;
 
     public HealingEngine() {
-        this.isParallel = "PARALLEL".equalsIgnoreCase(HealingConfig.getInstance().getExecutionMode());
-        strategies = new ArrayList<>();
-        List<String> configStrategies = HealingConfig.getInstance().getStrategies();
+        if(HealingConfig.getInstance().isEnabled()){
+            this.isParallel = "PARALLEL".equalsIgnoreCase(HealingConfig.getInstance().getExecutionMode());
+            strategies = new ArrayList<>();
+            List<String> configStrategies = HealingConfig.getInstance().getStrategies();
 
-        if (configStrategies != null && !configStrategies.isEmpty()) {
-            for (String strategyName : configStrategies) {
-                HealingStrategy strategy = createStrategy(strategyName);
-                if (strategy != null) {
-                    strategies.add(strategy);
+            if (configStrategies != null && !configStrategies.isEmpty()) {
+                for (String strategyName : configStrategies) {
+                    HealingStrategy strategy = createStrategy(strategyName);
+                    if (strategy != null) {
+                        strategies.add(strategy);
+                    }
                 }
+            } else {
+                // Default strategies
+                strategies.add(new ExactAttributeStrategy());
+                strategies.add(new KeyBasedStrategy());
+                strategies.add(new TextBasedStrategy());
+                strategies.add(new CrossAttributeStrategy());
+                strategies.add(new SemanticValueStrategy());
+                strategies.add(new StructuralStrategy());
+                strategies.add(new NeighborStrategy());
+                strategies.add(new RagHealingStrategy());
             }
-        } else {
-            // Default strategies
-            strategies.add(new ExactAttributeStrategy());
-            strategies.add(new KeyBasedStrategy());
-            strategies.add(new TextBasedStrategy());
-            strategies.add(new CrossAttributeStrategy());
-            strategies.add(new SemanticValueStrategy());
-            strategies.add(new StructuralStrategy());
-            strategies.add(new NeighborStrategy());
-            strategies.add(new RagHealingStrategy());
+            int maxThreads = HealingConfig.getInstance().getMaxHealingThreads();
+            this.customPool = new java.util.concurrent.ForkJoinPool(maxThreads);
+            Logger.info("Healing Engine initialized with %d strategies and %d max threads", strategies.size(), maxThreads);
+        }else{
+            this.isParallel = false;
+            this.strategies = Collections.emptyList();
+            this.customPool = null;
+            Logger.info("Healing Engine is disabled in the configuration.");
         }
 
-        int maxThreads = HealingConfig.getInstance().getMaxHealingThreads();
-        this.customPool = new java.util.concurrent.ForkJoinPool(maxThreads);
-
-        Logger.info("Healing Engine initialized with %d strategies and %d max threads", strategies.size(), maxThreads);
     }
 
     private HealingStrategy createStrategy(String name) {

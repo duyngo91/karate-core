@@ -1,6 +1,7 @@
 package core.mcp.constant;
 
 public class ToolNames {
+    // ===== Parameters =====
     public static final String LOCATOR = "locator";
     public static final String HEADER_LOCATOR = "header_locator";
     public static final String URL = "url";
@@ -9,6 +10,15 @@ public class ToolNames {
     public static final String SEARCH_VALUE = "search_value";
     public static final String CHECKED = "checked";
     public static final String TITLE = "title";
+    public static final String INFO = "info";
+    public static final String SCRIPT = "script";
+    public static final String SESSION = "session";
+    public static final String FILE_NAME = "file_name";
+    public static final String FILE_PATH = "file_path";
+    public static final String PAGE_ID = "page_id";
+    public static final String DIAGRAM_NAME = "diagram_name";
+    public static final String BASE_URL = "base_url";
+    public static final String SAVE_PATH = "save_path";
 
     private ToolNames() {}
 
@@ -19,6 +29,7 @@ public class ToolNames {
     public static final String MOUSE_CLICK = "mouse_click";
     public static final String GET_PAGE_TITLE = "get_page_title";
     public static final String CLOSE = "close";
+    public static final String EXECUTE_SCRIPT = "execute_script";
 
     // ===== Tab =====
     public static final String OPEN_NEW_TAB = "open_new_tab";
@@ -45,11 +56,22 @@ public class ToolNames {
     // ===== Table =====
     public static final String TABLE_GET_DATA = "table_get_data";
 
-    // ===== Script =====
-    public static final String EXECUTE_SCRIPT = "execute_script";
-
     // ===== Mobile =====
     public static final String CONNECT_ANDROID = "connect_android";
     public static final String MOBILE_CLICK = "mobile_click";
     public static final String MOBILE_CLOSE = "mobile_close";
+    
+    // ===== Recording =====
+    public static final String START_RECORDING = "start_recording";
+    public static final String STOP_RECORDING = "stop_recording";
+    public static final String GET_RECORDED_SCRIPT = "get_recorded_script";
+    
+    // ===== File & Download =====
+    public static final String DOWNLOAD_FILE_FROM_URL = "download_file_from_url";
+    public static final String UPLOAD_FILE_BY_DRAG = "upload_file_by_drag";
+    
+    // ===== Confluence =====
+    public static final String DOWNLOAD_CONFLUENCE_DIAGRAM = "download_confluence_diagram";
+    public static final String GET_CONFLUENCE_ATTACHMENTS = "get_confluence_attachments";
+    public static final String GET_CONFLUENCE_PAGE_ID = "get_confluence_page_id";
 }

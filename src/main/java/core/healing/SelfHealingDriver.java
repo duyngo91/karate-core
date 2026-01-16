@@ -10,17 +10,46 @@ import java.util.regex.Pattern;
 
 public class SelfHealingDriver {
     private final IHealingDriver driver;
-    // private final LocatorHistory history; // Removed in favor of
-    // GoldenStateRecorder
-    private final core.healing.engine.HealingEngine engine; // New V2 Engine
+    private final core.healing.engine.HealingEngine engine;
 
     public SelfHealingDriver(IHealingDriver driver) {
         this.driver = driver;
-        // this.history = new LocatorHistory();
-        // this.history.load();
-        this.engine = new core.healing.engine.HealingEngine(); // Initialize Engine
-        // Ensure recorder is loaded
-        core.healing.rag.GoldenStateRecorder.getInstance();
+        if(HealingConfig.getInstance().isEnabled()){
+            this.engine = new core.healing.engine.HealingEngine();
+            core.healing.rag.GoldenStateRecorder.getInstance();
+        }else{
+            this.engine = null;
+        }
+    }
+
+    public String tryHeal(String locator) {
+        if(!HealingConfig.getInstance().isEnabled()) return locator;
+        try {
+            // 1. Check Global Cache first
+            if (core.healing.HealingConfig.getInstance().isCacheEnabled() &&
+                    core.healing.HealingCache.getInstance().contains(locator)) {
+                String cached = core.healing.HealingCache.getInstance().get(locator);
+                Logger.info("[Cache] Using cached locator: %s -> %s", locator, cached);
+                return cached;
+            }
+
+            LocatorMapper mapper = LocatorMapper.getInstance();
+            if (mapper.isManaged(locator)) {
+                String elementId = mapper.getElementId(locator);
+                Logger.info("[Healing] Managed locator failing: %s (ID: %s). Attempting heal...", locator, elementId);
+                String healed = this.findElement(elementId, locator);
+                if (healed != null && !healed.equals(locator)) {
+                    Logger.info("[Healing] Successfully healed to: %s", healed);
+                    return healed;
+                }
+                Logger.warn("[Healing] Could not find a better alternative for: %s", locator);
+            } else {
+                Logger.debug("[Healing] Locator not managed, skipping: %s", locator);
+            }
+        } catch (Exception e) {
+            Logger.debug("Healing skipped: %s", e.getMessage());
+        }
+        return locator;
     }
 
     public String findElement(String elementId, String originalLocator) {

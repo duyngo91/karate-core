@@ -17,7 +17,9 @@ public class SchemaLoader {
             "form.schema.json",
             "mobile.schema.json",
             "tab.schema.json",
-            "table.schema.json"
+            "table.schema.json",
+            "recording.schema.json",
+            "file.schema.json"
     };
     static {
         loadSchemas();

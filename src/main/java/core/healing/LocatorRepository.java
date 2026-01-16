@@ -2,8 +2,12 @@ package core.healing;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import java.io.*;
-import java.util.*;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LocatorRepository {
     private static LocatorRepository instance;

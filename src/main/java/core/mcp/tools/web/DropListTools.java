@@ -1,55 +1,44 @@
 package core.mcp.tools.web;
 
+import core.mcp.command.web.DropListGetOptionsCommand;
+import core.mcp.command.web.DropListSearchSelectCommand;
+import core.mcp.command.web.DropListSelectCommand;
+import core.mcp.command.web.DropListSelectContainsCommand;
 import core.mcp.constant.ToolNames;
 import core.mcp.tools.BaseToolExecutor;
-import core.platform.web.element.droplist.DropList;
+import core.mcp.tools.registry.ToolProvider;
 import io.modelcontextprotocol.server.McpServerFeatures;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import static core.mcp.KarateMCPServer.createTool;
+public class DropListTools extends BaseToolExecutor implements ToolProvider {
 
-public class DropListTools extends BaseToolExecutor {
+    public List<McpServerFeatures.SyncToolSpecification> getTools() {
+        return List.of(
+            tool().name(ToolNames.DROPLIST_SELECT)
+                .description("Select droplist")
+                .command(webCommand(DropListSelectCommand::new))
+                .build(),
 
-    public static List<McpServerFeatures.SyncToolSpecification> getTools() {
-        List<McpServerFeatures.SyncToolSpecification> tools = new ArrayList<>();
+            tool().name(ToolNames.DROPLIST_SELECT_CONTAINS)
+                .description("Select droplist contains")
+                .command(webCommand(DropListSelectContainsCommand::new))
+                .build(),
 
+            tool().name(ToolNames.DROPLIST_SEARCH_SELECT)
+                .description("Search & select droplist")
+                .command(webCommand(DropListSearchSelectCommand::new))
+                .build(),
 
-        tools.add(createTool(ToolNames.DROPLIST_SELECT, "Select droplist", (ex, args) ->
-                new DropListTools().execute(ToolNames.DROPLIST_SELECT, args, a -> {
-                    getDropList(a).select(a.get("value").toString());
-                    return "Droplist selected";
-                }, true)
-        ));
-
-        tools.add(createTool(ToolNames.DROPLIST_SELECT_CONTAINS, "Select droplist contains", (ex, args) ->
-                new DropListTools().execute(ToolNames.DROPLIST_SELECT_CONTAINS, args, a -> {
-                    getDropList(a).selectTextContains(a.get("value").toString());
-                    return "Droplist select contains";
-                }, true)
-        ));
-
-        tools.add(createTool(ToolNames.DROPLIST_SEARCH_SELECT, "Search & select droplist", (ex, args) ->
-                new DropListTools().execute(ToolNames.DROPLIST_SEARCH_SELECT, args, a -> {
-                    getDropList(a).search(a.get("search_value").toString());
-                    return "Droplist search selected";
-                }, true)
-        ));
-
-        tools.add(createTool(ToolNames.DROPLIST_GET_OPTIONS, "Get droplist options", (ex, args) ->
-                new DropListTools().execute(ToolNames.DROPLIST_GET_OPTIONS, args, a ->
-                                getDropList(a).selected().toString(),
-                        false
-                )
-        ));
-
-        return tools;
+            tool().name(ToolNames.DROPLIST_GET_OPTIONS)
+                .description("Get droplist options")
+                .command(webCommand(DropListGetOptionsCommand::new))
+                .build()
+        );
     }
 
-    private static DropList getDropList(Map<String, Object> args) {
-        return (DropList) getWebDriver(args).droplist(args.get(ToolNames.LOCATOR).toString());
+    @Override
+    public String getCategory() {
+        return "DropListTools";
     }
-
 }

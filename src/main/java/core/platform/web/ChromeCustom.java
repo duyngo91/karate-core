@@ -10,10 +10,7 @@ import com.intuit.karate.driver.Element;
 import com.intuit.karate.http.HttpClientFactory;
 import com.intuit.karate.http.Response;
 import com.intuit.karate.shell.Command;
-import core.healing.IHealingDriver;
-import core.healing.HealingInitializer;
-import core.healing.LocatorMapper;
-import core.healing.SelfHealingDriver;
+import core.healing.*;
 import core.platform.common.Configuration;
 import core.platform.common.Constants;
 import core.platform.exceptions.ElementNotFoundException;
@@ -31,6 +28,7 @@ import core.platform.web.wait.Wait;
 import net.minidev.json.JSONArray;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -81,6 +79,8 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         // Auto-initialize healing if enabled
         HealingInitializer.autoInit();
         this.healer = new SelfHealingDriver(this);
+
+
     }
 
     private static String determineChromePath() {
@@ -314,8 +314,8 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
 
     @AutoDef
     public boolean waitTextIs(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator, String expected) {
-        return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds,
-                () -> !text(locator).isEmpty() && text(locator).trim().equalsIgnoreCase(expected));
+        return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds, ()
+                -> !text(locator).isEmpty() && text(locator).trim().equalsIgnoreCase(expected));
     }
 
     @AutoDef
@@ -326,8 +326,8 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     @AutoDef
     public boolean waitTextMatchRegex(int timeOutMilliSeconds, int retryTimeMilliSeconds, String locator,
             String regex) {
-        return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds,
-                () -> !extract(getText(locator).trim(), regex).trim().isEmpty());
+        return Wait.until(timeOutMilliSeconds, retryTimeMilliSeconds,()
+                -> !extract(getText(locator).trim(), regex).trim().isEmpty());
     }
 
     @AutoDef
@@ -469,74 +469,47 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
             recordSuccess(locator);
             return el;
         } catch (Exception e) {
-            String healed = tryHeal(locator);
+            String healed = healer.tryHeal(locator);
             return new WebElement(this, getOptions().waitForAny(this, healed, locator));
         }
     }
 
     @Override
     public Element focus(String locator) {
-        String healed = tryHeal(locator);
+        String healed = healer.tryHeal(locator);
         return new WebElement(this, super.focus(healed));
     }
 
     @Override
     public Element clear(String locator) {
-        String healed = tryHeal(locator);
+        String healed = healer.tryHeal(locator);
         return new WebElement(this, super.clear(healed));
     }
 
     @Override
     public Element click(String locator) {
-        String healed = tryHeal(locator);
+        String healed = healer.tryHeal(locator);
         return new WebElement(this, super.click(healed));
     }
 
     public Element select(String locator, String text) {
-        String healed = tryHeal(locator);
+        String healed = healer.tryHeal(locator);
         return new WebElement(this, super.select(healed, text));
     }
 
     @Override
     public Element select(String locator, int index) {
-        String healed = tryHeal(locator);
+        String healed = healer.tryHeal(locator);
         return new WebElement(this, super.select(healed, index));
     }
 
     @Override
     public Element input(String locator, String value) {
-        String healed = tryHeal(locator);
+        String healed = healer.tryHeal(locator);
         return new WebElement(this, super.input(healed, value));
     }
 
-    private String tryHeal(String locator) {
-        try {
-            // 1. Check Global Cache first
-            if (core.healing.HealingConfig.getInstance().isCacheEnabled() && 
-                core.healing.HealingCache.getInstance().contains(locator)) {
-                String cached = core.healing.HealingCache.getInstance().get(locator);
-                Logger.info("[Cache] Using cached locator: %s -> %s", locator, cached);
-                return cached;
-            }
 
-            LocatorMapper mapper = LocatorMapper.getInstance();
-            if (mapper.isManaged(locator)) {
-                String elementId = mapper.getElementId(locator);
-                Logger.info("[Healing] Managed locator failing: %s (ID: %s). Attempting heal...", locator, elementId);
-                String healed = this.healer.findElement(elementId, locator);
-                if (healed != null && !healed.equals(locator)) {
-                    Logger.info("[Healing] Successfully healed to: %s", healed);
-                    return healed;
-                }
-                Logger.warn("[Healing] Could not find a better alternative for: %s", locator);
-            } else {
-                Logger.debug("[Healing] Locator not managed, skipping: %s", locator);
-            }
-        } catch (Exception e) {
-            Logger.debug("Healing skipped: %s", e.getMessage());
-        }
-        return locator;
-    }
 
     private void recordSuccess(String locator) {
         try {
@@ -977,5 +950,271 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     @Override
     public String getType() {
         return "WEB";
+    }
+
+
+    @AutoDef
+    public boolean waitForDownload(String fileName, String downloadPath, int timeoutMs) {
+        String fullPath = getKaratePath(downloadPath) + File.separator + fileName;
+        return Wait.until(timeoutMs, 1000, () -> {
+            File file = new File(fullPath);
+            return file.exists() && file.length() > 0;
+        });
+    }
+
+    @AutoDef
+    public boolean waitForDownload(String fileName, int timeoutMs) {
+        return waitForDownload(fileName, Configuration.getString("download.path", Constants.DEFAULT_DOWNLOAD_PATH), timeoutMs);
+    }
+
+    @AutoDef
+    public List<String> getDownloadedFiles(String downloadPath) {
+        File downloadDir = new File(getKaratePath(downloadPath));
+
+        if (!downloadDir.exists() || !downloadDir.isDirectory()) {
+            return new ArrayList<>();
+        }
+
+        File[] files = downloadDir.listFiles();
+        if (files == null) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.stream(files)
+                .filter(File::isFile)
+                .map(File::getName)
+                .collect(Collectors.toList());
+    }
+
+    @AutoDef
+    public List<String> getDownloadedFiles() {
+        return getDownloadedFiles(Configuration.getString("download.path", Constants.DEFAULT_DOWNLOAD_PATH));
+    }
+
+    @AutoDef
+    public String downloadFileFromUrl(String url, String fileName) {
+        Logger.info("Downloading file from URL: %s as %s", url, fileName);
+
+        String mimeType = getMimeType(fileName);
+
+        String script = String.format(
+                "(function() {" +
+                        "  var xhr = new XMLHttpRequest();" +
+                        "  xhr.open('GET', '%s', false);" +
+                        "  xhr.withCredentials = true;" +
+                        "  xhr.send(null);" +
+                        "  if (xhr.status === 200) {" +
+                        "    var content = xhr.responseText;" +
+                        "    var blob = new Blob([content], { type: '%s' });" +
+                        "    var url = URL.createObjectURL(blob);" +
+                        "    var a = document.createElement('a');" +
+                        "    a.href = url;" +
+                        "    a.download = '%s';" +
+                        "    document.body.appendChild(a);" +
+                        "    a.click();" +
+                        "    document.body.removeChild(a);" +
+                        "    URL.revokeObjectURL(url);" +
+                        "    return JSON.stringify({ success: true, length: content.length });" +
+                        "  } else {" +
+                        "    return JSON.stringify({ success: false, status: xhr.status });" +
+                        "  }" +
+                        "})();",
+                url, mimeType, fileName
+        );
+
+        Object result = script(script);
+        Logger.debug("Download result: %s", result);
+        return result.toString();
+    }
+
+    @AutoDef
+    public String downloadConfluenceDiagram(String pageId, String diagramName, String baseUrl, String savePath) {
+        Logger.info("Downloading Confluence diagram: %s from page: %s", diagramName, pageId);
+
+        String apiUrl = baseUrl + "/rest/api/content/" + pageId + "/child/attachment";
+        String script = String.format(
+                "(function() {" +
+                        "  var xhr = new XMLHttpRequest();" +
+                        "  xhr.open('GET', '%s', false);" +
+                        "  xhr.withCredentials = true;" +
+                        "  xhr.send(null);" +
+                        "  if (xhr.status !== 200) {" +
+                        "    return {error: 'HTTP ' + xhr.status};" +
+                        "  }" +
+                        "  return JSON.parse(xhr.responseText);" +
+                        "})();",
+                apiUrl
+        );
+
+        Map<String, Object> attachments = (Map<String, Object>) script(script);
+        List<Map<String, Object>> results = (List<Map<String, Object>>) attachments.get("results");
+
+        String downloadUrl = null;
+        for (Map<String, Object> att : results) {
+            Map<String, Object> extensions = (Map<String, Object>) att.get("extensions");
+            String mediaType = (String) extensions.get("mediaType");
+            String title = (String) att.get("title");
+
+            if ("application/vnd.jgraph.mxfile".equals(mediaType) &&
+                    (diagramName == null || title.contains(diagramName))) {
+                Map<String, Object> links = (Map<String, Object>) att.get("_links");
+                downloadUrl = (String) links.get("download");
+                Logger.debug("Found diagram: %s", title);
+                break;
+            }
+        }
+
+        if (downloadUrl == null) {
+            throw new RunException("Diagram not found: " + diagramName);
+        }
+
+        String fullUrl = baseUrl + downloadUrl;
+        String xmlScript = String.format(
+                "(function() {" +
+                        "  var xhr = new XMLHttpRequest();" +
+                        "  xhr.open('GET', '%s', false);" +
+                        "  xhr.withCredentials = true;" +
+                        "  xhr.send(null);" +
+                        "  if (xhr.status !== 200) {" +
+                        "    return '';" +
+                        "  }" +
+                        "  return xhr.responseText;" +
+                        "})();",
+                fullUrl
+        );
+
+        String xmlContent = script(xmlScript).toString();
+
+        String fullPath = getKaratePath(savePath);
+        File file = new File(fullPath);
+        file.getParentFile().mkdirs();
+
+        try {
+            org.apache.commons.io.FileUtils.writeStringToFile(file, xmlContent, "UTF-8");
+        } catch (IOException e) {
+            throw new RunException("Failed to save diagram: " + e.getMessage());
+        }
+
+        Logger.info("Diagram saved to: %s", fullPath);
+        return fullPath;
+    }
+
+    @AutoDef
+    public Map<String, Object> getConfluenceAttachments(String pageId, String baseUrl) {
+        Logger.info("Getting Confluence attachments for page: %s", pageId);
+
+        String apiUrl = baseUrl + "/rest/api/content/" + pageId + "/child/attachment";
+        String script = String.format(
+                "(function() {" +
+                        "  var xhr = new XMLHttpRequest();" +
+                        "  xhr.open('GET', '%s', false);" +
+                        "  xhr.withCredentials = true;" +
+                        "  xhr.send(null);" +
+                        "  if (xhr.status !== 200) {" +
+                        "    return {error: 'HTTP ' + xhr.status};" +
+                        "  }" +
+                        "  return JSON.parse(xhr.responseText);" +
+                        "})();",
+                apiUrl
+        );
+
+        return (Map<String, Object>) script(script);
+    }
+
+    @AutoDef
+    public List<String> getConfluenceDiagrams(String pageId, String baseUrl, String downloadPath) {
+        Logger.info("Downloading Confluence diagrams for page: %s to: %s", pageId, downloadPath);
+
+        List<String> downloadedFiles = new ArrayList<>();
+
+        String apiUrl = baseUrl + "/rest/api/content/" + pageId + "/child/attachment";
+        String script = String.format(
+                "(function() {" +
+                        "  var xhr = new XMLHttpRequest();" +
+                        "  xhr.open('GET', '%s', false);" +
+                        "  xhr.withCredentials = true;" +
+                        "  xhr.send(null);" +
+                        "  if (xhr.status !== 200) {" +
+                        "    return {error: 'HTTP ' + xhr.status, message: xhr.statusText};" +
+                        "  }" +
+                        "  return JSON.parse(xhr.responseText);" +
+                        "})();",
+                apiUrl
+        );
+
+        Map<String, Object> attachments = (Map<String, Object>) script(script);
+
+        if (attachments.containsKey("error")) {
+            throw new RunException("Failed to get attachments: " + attachments.get("error") + " - " + attachments.get("message"));
+        }
+
+        List<Map<String, Object>> results = (List<Map<String, Object>>) attachments.get("results");
+
+        String fullDownloadPath = getKaratePath(downloadPath);
+        File downloadDir = new File(fullDownloadPath);
+        downloadDir.mkdirs();
+
+        for (Map<String, Object> att : results) {
+            Map<String, Object> extensions = (Map<String, Object>) att.get("extensions");
+            String mediaType = (String) extensions.get("mediaType");
+            String title = (String) att.get("title");
+
+            if ("application/vnd.jgraph.mxfile".equals(mediaType)) {
+                Map<String, Object> links = (Map<String, Object>) att.get("_links");
+                String downloadUrl = (String) links.get("download");
+
+                String fullUrl = baseUrl + downloadUrl;
+                String xmlScript = String.format(
+                        "(function() {" +
+                                "  var xhr = new XMLHttpRequest();" +
+                                "  xhr.open('GET', '%s', false);" +
+                                "  xhr.withCredentials = true;" +
+                                "  xhr.send(null);" +
+                                "  if (xhr.status !== 200) {" +
+                                "    return '';" +
+                                "  }" +
+                                "  return xhr.responseText;" +
+                                "})();",
+                        fullUrl
+                );
+
+                String xmlContent = script(xmlScript).toString();
+
+                String fileName = title + ".drawio";
+                File file = new File(downloadDir, fileName);
+
+                try {
+                    org.apache.commons.io.FileUtils.writeStringToFile(file, xmlContent, "UTF-8");
+                    downloadedFiles.add(file.getAbsolutePath());
+                    Logger.info("Downloaded diagram: %s", fileName);
+                } catch (IOException e) {
+                    Logger.error("Failed to save diagram %s: %s", fileName, e.getMessage());
+                }
+            }
+        }
+
+        Logger.info("Downloaded %d diagrams to: %s", downloadedFiles.size(), fullDownloadPath);
+        return downloadedFiles;
+    }
+
+    @AutoDef
+    public String getConfluencePageId() {
+        Logger.info("Getting Confluence page ID from current page");
+
+        String script = "(function() {" +
+                "  return AJS.params.pageId || " +
+                "         (typeof Confluence !== 'undefined' ? Confluence.getContentId() : null) || " +
+                "         document.querySelector('meta[name=\"ajs-page-id\"]')?.content;" +
+                "})();";
+
+        Object result = script(script);
+        String pageId = result != null ? result.toString() : null;
+
+        if (pageId == null) {
+            throw new RunException("Could not find Confluence page ID. Make sure you are on a Confluence page.");
+        }
+
+        Logger.debug("Found page ID: %s", pageId);
+        return pageId;
     }
 }

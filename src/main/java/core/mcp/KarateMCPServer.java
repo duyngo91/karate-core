@@ -1,27 +1,31 @@
 package core.mcp;
 
+import core.mcp.config.McpConfig;
+import core.mcp.interceptor.LoggingInterceptor;
+import core.mcp.interceptor.MetricsInterceptor;
+import core.mcp.observer.RecordingListener;
 import core.mcp.schema.SchemaLoader;
-import core.mcp.tools.MobileTools;
-import core.mcp.tools.web.*;
+import core.mcp.tools.BaseToolExecutor;
+import core.mcp.tools.registry.ToolRegistry;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.server.McpSyncServer;
-import io.modelcontextprotocol.server.McpSyncServerExchange;
 import io.modelcontextprotocol.server.transport.StdioServerTransportProvider;
 import io.modelcontextprotocol.spec.McpSchema;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
 
 public class KarateMCPServer {
+    private static final MetricsInterceptor metricsInterceptor = new MetricsInterceptor();
+
     public static void main(String[] args) {
+        McpConfig config = McpConfig.getInstance();
+        
         StdioServerTransportProvider transportProvider = new StdioServerTransportProvider();
         List<McpServerFeatures.SyncToolSpecification> syncToolSpecification = getTools();
 
         McpSyncServer syncServer = McpServer.sync(transportProvider)
-                .serverInfo("karate-browser", "1.0.0")
+                .serverInfo("karate-browser", config.getServerVersion())
                 .capabilities(McpSchema.ServerCapabilities.builder()
                         .tools(true)
                         .logging()
@@ -29,8 +33,15 @@ public class KarateMCPServer {
                 .tools(syncToolSpecification)
                 .build();
 
+        // Print metrics on shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("\n=== MCP Metrics ===");
+            metricsInterceptor.getStats().forEach((tool, stats) -> 
+                System.out.println(tool + ": " + stats)
+            );
+        }));
+
         try {
-            // Keep the server alive
             Thread.currentThread().join();
         } catch (InterruptedException e) {
             System.err.println("Server interrupted: " + e.getMessage());
@@ -38,20 +49,22 @@ public class KarateMCPServer {
     }
 
     private static List<McpServerFeatures.SyncToolSpecification> getTools() {
-        List<McpServerFeatures.SyncToolSpecification> tools = new ArrayList<>();
-        tools.addAll(BrowserTools.getTools());
-        tools.addAll(CheckBoxTools.getTools());
-        tools.addAll(DropListTools.getTools());
-        tools.addAll(FormTools.getTools());
-        tools.addAll(TableTools.getTools());
-        tools.addAll(TabTools.getTools());
-        tools.addAll(MobileTools.getTools());
-        return tools;
-    }
-
-    public static McpServerFeatures.SyncToolSpecification createTool(String name, String description,
-                                                                      BiFunction<McpSyncServerExchange, Map<String, Object>, McpSchema.CallToolResult> handler) {
-        return new McpServerFeatures.SyncToolSpecification(
-                new McpSchema.Tool(name, description, SchemaLoader.getSchema(name)), handler);
+        McpConfig config = McpConfig.getInstance();
+        ToolRegistry registry = ToolRegistry.getInstance();
+        
+        // Register interceptors
+        if (config.isLoggingEnabled()) {
+            BaseToolExecutor.registerGlobalInterceptor(new LoggingInterceptor());
+        }
+        if (config.isMetricsEnabled()) {
+            BaseToolExecutor.registerGlobalInterceptor(metricsInterceptor);
+        }
+        
+        // Register listeners (Observer Pattern)
+        BaseToolExecutor.registerGlobalListener(new RecordingListener());
+        
+        // Auto-register tools
+        registry.autoRegisterAllTools();
+        return registry.getAllTools();
     }
 }
