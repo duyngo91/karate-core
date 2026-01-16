@@ -67,7 +67,7 @@ strategies:
 ```
 
 ## 📊 Documentation
-- [Self-Healing Setup](HEALING_SETUP.md)
+- [MCP](src/main/java/core/mcp/MCP_DOCUMENTATION.md)
 - [Healing Strategies Deep Dive](healing_strategies.md)
 
 ---
