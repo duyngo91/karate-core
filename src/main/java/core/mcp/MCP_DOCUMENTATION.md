@@ -48,24 +48,34 @@
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    KarateMCPServer (Main)                        │
-│  • Load Configuration                                            │
-│  • Register Interceptors (Logging, Metrics)                      │
-│  • Register Listeners (Recording, Audit)                         │
-│  • Register Tool Providers                                       │
+│  • Load McpConfig (mcp.properties)                               │
+│  • Register Global Interceptors (Logging, Metrics)               │
+│  • Register Global Listeners (Recording)                         │
+│  • Call registry.autoRegisterAllTools()                          │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      TOOL REGISTRY (Singleton)                   │
-│  • Dynamic tool registration                                     │
-│  • Tool lookup and management                                    │
+│              TOOL REGISTRY (Singleton + ServiceLoader)           │
+│  • ServiceLoader.load(ToolProvider.class)                        │
+│  • Auto-discovers all ToolProvider implementations               │
+│  • ConcurrentHashMap<String, SyncToolSpecification>              │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│         META-INF/services/core.mcp.tools.registry.ToolProvider   │
+│  • BrowserTools                                                  │
+│  • FormTools, CheckBoxTools, DropListTools                       │
+│  • TableTools, TabTools, FileTools                               │
+│  • MobileTools, RecordingTools                                   │
 └────────────────────────────┬────────────────────────────────────┘
                              │
         ┌────────────────────┼────────────────────┐
         ▼                    ▼                    ▼
 ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
 │BrowserTools  │    │  FormTools   │    │  FileTools   │
-│              │    │              │    │              │
+│(ToolProvider)│    │(ToolProvider)│    │(ToolProvider)│
 └──────┬───────┘    └──────┬───────┘    └──────┬───────┘
        │                   │                    │
        └───────────────────┼────────────────────┘
@@ -74,18 +84,20 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │                    BaseToolExecutor (Abstract)                   │
 │  • ToolBuilder (Fluent API)                                      │
-│  • Execute with Interceptors & Listeners                         │
-│  • Driver management (Web/Mobile)                                │
+│  • Execute with Interceptor Chain & Observer Pattern             │
+│  • Driver management (ChromeCustom/MobileCustom)                 │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      COMMAND PATTERN LAYER                       │
-│  • AbstractToolCommand                                           │
-│  • 24+ Command implementations                                   │
+│  • AbstractToolCommand (base)                                    │
+│  • AbstractDriverCommand (web/mobile)                            │
+│  • 33+ Command implementations                                   │
 │  • ValidationStrategy integration                                │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
 
 ### 2.2. Các thành phần chính
 
@@ -232,40 +244,57 @@ ToolRegistry.getInstance()
    - Load mcp.properties
    - Override with environment variables
    ↓
-3. Register Global Interceptors
-   - LoggingInterceptor (if enabled)
-   - MetricsInterceptor (if enabled)
+3. getTools() method
    ↓
-4. Register Global Listeners
-   - RecordingListener
-   - MetricsListener
-   - AuditListener
+4. Register Global Interceptors
+   - LoggingInterceptor (if config.isLoggingEnabled())
+   - MetricsInterceptor (if config.isMetricsEnabled())
    ↓
-5. Register Tool Providers
-   - BrowserToolProvider
-   - FormToolProvider
-   - FileToolProvider
-   - MobileToolProvider
+5. Register Global Listeners
+   - RecordingListener (Observer Pattern)
    ↓
-6. McpServer.sync().build()
-   - Start listening on stdio
+6. Auto-Register All Tools
+   - registry.autoRegisterAllTools()
+   - ServiceLoader scans for ToolProvider implementations
+   - Automatically loads: BrowserTools, FormTools, CheckBoxTools,
+     DropListTools, TableTools, TabTools, FileTools, MobileTools, RecordingTools
+   ↓
+7. McpServer.sync().build()
+   - Create server with registered tools
+   - Start listening on stdio (JSON-RPC)
+   ↓
+8. Runtime.addShutdownHook()
+   - Print metrics on shutdown
 ```
 
-### 4.2. Tool Registration
+### 4.2. Auto-Registration Flow (ServiceLoader Pattern)
 
 ```
-BrowserTools.getTools():
+ToolRegistry.autoRegisterAllTools():
   ↓
-tool().name("click")
-  .description("Click element")
-  .command(new ClickCommand())
-  .build()
+1. ServiceLoader.load(ToolProvider.class)
+   - Scans META-INF/services/core.mcp.tools.registry.ToolProvider
+   - Discovers all ToolProvider implementations
   ↓
-ToolBuilder.build():
-  - Create SyncToolSpecification
-  - Wrap with interceptors/listeners
+2. For each ToolProvider:
+   BrowserTools.getTools() → List<SyncToolSpecification>
+     ↓
+   Each tool created via ToolBuilder:
+     tool().name("click")
+       .description("Click element")
+       .command(new ClickCommand())
+       .build()
+     ↓
+   ToolBuilder.build():
+     - Create SyncToolSpecification
+     - Wrap execute() with interceptors/listeners
+     - Return tool specification
   ↓
-ToolRegistry.register("click", spec)
+3. ToolRegistry.register(provider)
+   - Registers all tools from provider
+   - Stores in ConcurrentHashMap<String, SyncToolSpecification>
+  ↓
+4. Tools available via registry.getAllTools()
 ```
 
 ### 4.3. Tool Execution
@@ -382,22 +411,62 @@ public class MyTools extends BaseToolExecutor {
 }
 ```
 
-#### **BƯỚC 4: Đăng ký vào KarateMCPServer**
+#### **BƯỚC 4: Implement ToolProvider Interface**
 
 ```java
-// File: src/main/java/core/mcp/KarateMCPServer.java
+// File: src/main/java/core/mcp/tools/web/MyTools.java
+package core.mcp.tools.web;
 
-private static List<McpServerFeatures.SyncToolSpecification> getTools() {
-    // ... existing code ...
+import core.mcp.command.*;
+import core.mcp.tools.BaseToolExecutor;
+import core.mcp.tools.registry.ToolProvider;
+import io.modelcontextprotocol.server.McpServerFeatures;
+import java.util.List;
+
+public class MyTools extends BaseToolExecutor implements ToolProvider {
     
-    MyTools myTools = new MyTools();
-    myTools.getTools().forEach(t -> registry.register(t.tool().name(), t));
+    @Override
+    public List<McpServerFeatures.SyncToolSpecification> getTools() {
+        return List.of(
+            tool().name("my_tool")
+                .description("My tool description")
+                .command(new MyToolCommand())
+                .build()
+        );
+    }
     
-    return registry.getAllTools();
+    @Override
+    public String getCategory() {
+        return "Custom Tools";
+    }
+    
+    @Override
+    public int getPriority() {
+        return 100; // Higher priority loads first
+    }
 }
 ```
 
-#### **BƯỚC 5: Tạo schema (Optional)**
+#### **BƯỚC 5: Đăng ký ServiceLoader**
+
+```
+// File: src/main/resources/META-INF/services/core.mcp.tools.registry.ToolProvider
+
+core.mcp.tools.web.BrowserTools
+core.mcp.tools.web.FormTools
+core.mcp.tools.web.CheckBoxTools
+core.mcp.tools.web.DropListTools
+core.mcp.tools.web.TableTools
+core.mcp.tools.web.TabTools
+core.mcp.tools.web.FileTools
+core.mcp.tools.mobile.MobileTools
+core.mcp.tools.record.RecordingTools
+core.mcp.tools.web.MyTools  ← ADD THIS LINE
+```
+
+**Lưu ý**: Sau khi thêm vào file services, tools sẽ tự động được load khi server khởi động.
+
+#### **BƯỚC 6: Tạo schema (Optional)**
 
 ```json
 // File: src/main/resources/schemas/mytool.schema.json
@@ -794,73 +863,123 @@ public void testMyCommand() {
 | `init_browser` | Initialize Chrome browser | session, headless, reuse |
 | `navigate` | Navigate to URL | url, session |
 | `get_page_title` | Get page title | session |
-| `close` | Close browser | session |
+| `close_browser` | Close browser | session |
 | `execute_script` | Execute JavaScript | script, session |
 
-### 9.2. Form Tools (5 tools)
+### 9.2. Form Tools (3 tools)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
 | `click` | Click element | locator, session |
-| `mouse_click` | Mouse click element | locator, session |
-| `input` | Input text | locator, text, session |
-| `clear` | Clear input | locator, session |
-| `get_text` | Get element text | locator, session |
+| `input` | Input text to element | locator, value, session |
+| `clear` | Clear input field | locator, session |
 
-### 9.3. Tab Tools (5 tools)
+### 9.3. CheckBox Tools (2 tools)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `open_new_tab` | Open new tab | url, session |
-| `switch_tab` | Switch tab by title | title, session |
-| `switch_tab_contains` | Switch tab by partial title | title, session |
-| `get_tabs` | Get all tabs | session |
-| `close_tab` | Close tab by title | title, session |
+| `checkbox_is_checked` | Check if checkbox is selected | locator, session |
+| `checkbox_set` | Set checkbox state | locator, checked, session |
 
 ### 9.4. DropList Tools (4 tools)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `droplist_select` | Select droplist option | locator, value, session |
-| `droplist_select_contains` | Select by partial text | locator, value, session |
-| `droplist_search_select` | Search and select | locator, search_value, session |
-| `droplist_get_options` | Get droplist options | locator, session |
+| `droplist_select` | Select dropdown by value | locator, value, session |
+| `droplist_select_contains` | Select dropdown by partial text | locator, text, session |
+| `droplist_search_select` | Search and select in dropdown | locator, searchText, session |
+| `droplist_get_options` | Get all dropdown options | locator, session |
 
 ### 9.5. Table Tools (1 tool)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `table_get_data` | Get table data | header_locator, session |
+| `table_get_data` | Extract table data | locator, session |
 
-### 9.6. Mobile Tools (3 tools)
+### 9.6. Tab Tools (5 tools)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `connect_android` | Connect Android device | info, session |
+| `get_tabs` | Get all open tabs | session |
+| `open_new_tab` | Open new browser tab | url, session |
+| `switch_tab` | Switch to tab by index | index, session |
+| `switch_tab_contains` | Switch to tab by title | title, session |
+| `close_tab` | Close current tab | session |
+
+### 9.7. File Tools (4 tools)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `upload_file_by_drag` | Upload file via drag-drop | locator, filePath, session |
+| `download_file_from_url` | Download file from URL | url, fileName, session |
+| `get_confluence_attachments` | Get Confluence attachments | pageId, session |
+| `download_confluence_diagram` | Download Confluence diagram | pageId, diagramName, session |
+
+### 9.8. Mobile Tools (2 tools)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `connect_android` | Connect to Android device | capabilities |
 | `mobile_click` | Click mobile element | locator, session |
-| `mobile_close` | Close mobile driver | session |
 
-### 9.7. File Tools (5 tools)
-
-| Tool | Description | Parameters |
-|------|-------------|------------|
-| `download_file_from_url` | Download file from URL | url, file_name, session |
-| `upload_file_by_drag` | Upload file by drag event | locator, file_path, session |
-| `download_confluence_diagram` | Download Confluence diagram | page_id, diagram_name, base_url, save_path, session |
-| `get_confluence_attachments` | Get Confluence attachments | page_id, base_url, session |
-| `get_confluence_page_id` | Get Confluence page ID | session |
-
-### 9.8. Recording Tools (3 tools)
+### 9.9. Recording Tools (3 tools)
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `start_recording` | Start recording | - |
+| `start_recording` | Start recording test steps | - |
 | `stop_recording` | Stop recording | - |
-| `get_recorded_script` | Get recorded script | - |
+| `get_recorded_script` | Get recorded Karate script | - |
 
-**Tổng: 31 tools**
+### 9.10. Utility Tools (1 tool)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `get_text` | Get element text content | locator, session |
 
 ---
+
+## 10. Tool Categories Summary
+
+```
+📊 TOTAL TOOLS: 30+
+
+Web Automation:
+├── Browser Management: 5 tools
+├── Form Interaction: 3 tools
+├── CheckBox Operations: 2 tools
+├── DropList Operations: 4 tools
+├── Table Operations: 1 tool
+├── Tab Management: 5 tools
+└── File Operations: 4 tools
+
+Mobile Automation:
+└── Mobile Operations: 2 tools
+
+Development Tools:
+└── Recording: 3 tools
+
+Utility:
+└── Text Extraction: 1 tool
+```
+
+### Tool Implementation Status
+
+| Category | Implemented | Tested | Production Ready |
+|----------|-------------|--------|------------------|
+| Browser Tools | ✅ 5/5 | ⚠️ Partial | ✅ Yes |
+| Form Tools | ✅ 3/3 | ⚠️ Partial | ✅ Yes |
+| CheckBox Tools | ✅ 2/2 | ⚠️ Partial | ✅ Yes |
+| DropList Tools | ✅ 4/4 | ⚠️ Partial | ✅ Yes |
+| Table Tools | ✅ 1/1 | ⚠️ Partial | ✅ Yes |
+| Tab Tools | ✅ 5/5 | ⚠️ Partial | ✅ Yes |
+| File Tools | ✅ 4/4 | ⚠️ Partial | ✅ Yes |
+| Mobile Tools | ✅ 2/2 | ❌ No | ⚠️ Beta |
+| Recording Tools | ✅ 3/3 | ❌ No | ⚠️ Beta |
+| Utility Tools | ✅ 1/1 | ⚠️ Partial | ✅ Yes |
+
+
+---
+
 
 ## 10. Troubleshooting
 
@@ -868,100 +987,146 @@ public void testMyCommand() {
 
 **Issue**: Tool không được đăng ký
 ```
-Solution: Kiểm tra KarateMCPServer.getTools() đã register tool chưa
+Solution: Kiểm tra ToolRegistry.autoRegisterAllTools() đã được gọi trong KarateMCPServer
 ```
 
 **Issue**: Validation failed
 ```
-Solution: Kiểm tra ValidationStrategy và required parameters
+Solution: Kiểm tra ValidationStrategy và required parameters trong Command class
 ```
 
 **Issue**: Driver not found
 ```
-Solution: Đảm bảo init_browser được gọi trước, check session name
+Solution: Đảm bảo init_browser được gọi trước, check session name khớp với config
 ```
 
-**Issue**: Schema không load
+**Issue**: Session mismatch
 ```
-Solution: Kiểm tra SchemaLoader.SCHEMA_FILES đã thêm file schema chưa
+Error: Expected ChromeCustom but got MobileCustom
+Solution: Sử dụng đúng tools cho đúng driver type (web/mobile)
 ```
 
 ### 10.2. Debug Tips
 
-- Enable logging: `mcp.logging.enabled=true`
-- Check metrics: Xem console output khi shutdown
-- Use breakpoints trong Command.execute()
+- Enable logging: `mcp.logging.enabled=true` trong `mcp.properties`
+- Check metrics: Xem console output khi shutdown server
+- Use breakpoints trong `Command.execute()` method
 - Verify tool registration: `ToolRegistry.getInstance().getAllTools()`
+- Check interceptor chain: Add logging trong `ToolInterceptor.before()`
 
 ---
 
-## 11. Metrics & Performance
+## 11. Architecture Metrics
 
-### 11.1. Architecture Score: 9.5/10
+### 11.1. Current Implementation Status
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Code Lines | 450 | 280 | -38% |
-| Validation Coverage | 64% | 93% | +29% |
-| Reusable Commands | 0 | 24 | +100% |
-| Design Patterns | 3 | 7 | +133% |
+| Component | Status | Coverage |
+|-----------|--------|----------|
+| Command Pattern | ✅ Complete | 100% |
+| Builder Pattern | ✅ Complete | 100% |
+| Strategy Pattern | ✅ Complete | 100% |
+| Interceptor Pattern | ✅ Complete | 100% |
+| Observer Pattern | ✅ Complete | 100% |
+| Registry Pattern | ✅ Complete | 100% |
+| Singleton Pattern | ✅ Complete | 100% |
 
-### 11.2. Key Achievements
+### 11.2. Code Quality Metrics
 
-✅ **100% Command Pattern Migration**  
-✅ **Fluent Builder API**  
-✅ **Validation Strategy**  
-✅ **Interceptor Chain**  
-✅ **Observer Pattern**  
-✅ **Type-Safe Drivers**  
-✅ **No Breaking Changes**  
+| Metric | Value | Status |
+|--------|-------|--------|
+| Total Tools | 30+ | ✅ Good |
+| Command Classes | 33 | ✅ Good |
+| Tool Providers | 9 | ✅ Good |
+| Design Patterns | 7 | ✅ Excellent |
+| Code Reusability | High | ✅ Excellent |
+| Maintainability | High | ✅ Excellent |
+
+### 11.3. Key Achievements
+
+✅ **Fluent Builder API** - Giảm 38% code boilerplate  
+✅ **Command Pattern Migration** - 100% tools sử dụng Command  
+✅ **Validation Strategy** - Tăng 29% validation coverage  
+✅ **Interceptor Chain** - Logging và metrics tự động  
+✅ **Observer Pattern** - Recording tự động  
+✅ **Type-Safe Drivers** - Compile-time safety  
+✅ **No Breaking Changes** - Backward compatible  
 
 ---
 
-## 12. Roadmap
+## 12. Roadmap & Future Plans
 
-### 12.1. Planned Features
+### 12.1. Version 1.1.0 (Planned)
 
+**Testing & Quality**:
+- [ ] Unit tests cho tất cả Commands (target: 80% coverage)
+- [ ] Integration tests cho tool chains
+- [ ] Performance benchmarks
+- [ ] Load testing
+
+**Features**:
 - [ ] GraphQL API support
 - [ ] WebSocket tools
-- [ ] Performance profiling tools
-- [ ] Visual regression testing
-- [ ] AI-powered element detection
-- [ ] Cloud browser support
+- [ ] Enhanced mobile tools (iOS support)
+- [ ] Visual regression testing integration
 
-### 12.2. Improvements
-
+**Improvements**:
 - [ ] Async tool execution
-- [ ] Tool versioning
-- [ ] Plugin system
-- [ ] Enhanced error reporting
+- [ ] Tool versioning system
+- [ ] Enhanced error reporting với structured logs
+- [ ] Metrics export (Prometheus format)
+
+### 12.2. Version 2.0.0 (Future)
+
+- [ ] Plugin system cho custom tools
 - [ ] Tool marketplace
+- [ ] Cloud browser support
+- [ ] AI-powered element detection
+- [ ] Distributed testing support
 
 ---
 
 ## 13. Contributing
 
-### 13.1. Code Style
+### 13.1. How to Contribute
 
-- Follow Java conventions
-- Use meaningful names
+1. **Fork the repository**
+2. **Create feature branch**: `git checkout -b feature/new-tool`
+3. **Implement changes**: Follow coding standards
+4. **Add tests**: Unit + Integration tests
+5. **Update documentation**: README và MCP_DOCUMENTATION.md
+6. **Submit PR**: With clear description
+
+### 13.2. Code Style Guidelines
+
+- Follow Java conventions (camelCase, PascalCase)
+- Use meaningful variable names
 - Write clean, readable code
-- Add comments for complex logic
-
-### 13.2. Pull Request Process
-
-1. Create feature branch
-2. Implement changes
-3. Add tests
-4. Update documentation
-5. Submit PR with description
+- Add JavaDoc comments for public methods
+- Keep methods focused (Single Responsibility)
+- Use design patterns appropriately
 
 ### 13.3. Testing Requirements
 
-- Unit tests for Commands
-- Integration tests for Tools
+**Minimum Requirements**:
+- Unit tests for all Command classes
+- Integration tests for tool workflows
 - Schema validation tests
+- No breaking changes to existing APIs
+
+**Recommended**:
 - Performance benchmarks
+- Error scenario tests
+- Edge case coverage
+- Documentation examples
+
+### 13.4. Pull Request Checklist
+
+- [ ] Code follows project style guidelines
+- [ ] All tests pass (`mvn test`)
+- [ ] New tests added for new features
+- [ ] Documentation updated
+- [ ] No breaking changes (or clearly documented)
+- [ ] Commit messages are clear and descriptive
 
 ---
 
@@ -969,6 +1134,31 @@ Solution: Kiểm tra SchemaLoader.SCHEMA_FILES đã thêm file schema chưa
 
 ### 14.1. License
 
+This project is part of the Karate Enterprise Framework.  
+© 2025 Core Platform. All rights reserved.
+
 ### 14.2. Support
 
+**Email**: ngovanduy1991@gmail.com  
+**Documentation**: See README.md and this file  
+**Issues**: Report via project issue tracker
+
+### 14.3. Acknowledgments
+
+Built with:
+- **Karate Framework** (1.5.1)
+- **MCP SDK** (0.10.0)
+- **Java** (17)
+
+Special thanks to the Karate community and contributors.
+
 ---
+
+**📚 Documentation Version**: 1.0.0  
+**📅 Last Updated**: 2026-01-17  
+**👥 Maintained By**: Karate Framework Team  
+**📧 Contact**: ngovanduy1991@gmail.com
+
+---
+
+*End of MCP System Documentation*
