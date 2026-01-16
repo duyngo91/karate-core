@@ -8,6 +8,9 @@ import core.healing.IHealingDriver;
 import core.platform.utils.Logger;
 
 import java.io.*;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -190,4 +193,22 @@ public class GoldenStateRecorder {
             Logger.error("Failed to load element metadata: %s", e.getMessage());
         }
     }
+
+    public void clear() {
+        try {
+            boolean deleted = Files.deleteIfExists(Path.of(METADATA_FILE));
+            if (deleted) {
+                Logger.debug("File deleted successfully: " + METADATA_FILE);
+            } else {
+                Logger.debug("File not found or could not be deleted.");
+            }
+        } catch (DirectoryNotEmptyException e) {
+            Logger.error("Cannot delete non-empty directory: " + e.getMessage());
+        } catch (IOException e) {
+            // Catches other I/O errors, such as permission issues
+            Logger.error("Error deleting file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -32,7 +32,7 @@ class RagHealingStrategyTest {
     @AfterEach
     void tearDown() {
         // Clean up golden state after each test
-        recorder.clearAll();
+        recorder.clear();
     }
 
     @Test
