@@ -37,11 +37,8 @@ public class ToolRegistry {
         ServiceLoader<ToolProvider> loader = ServiceLoader.load(ToolProvider.class);
         for (ToolProvider provider : loader) {
             try {
-                System.out.println("Loading ToolProvider: " + provider.getClass().getName());
                 INSTANCE.register(provider);
-                System.out.println("Loaded OK: " + provider.getClass().getName());
             } catch (Throwable e) {
-                System.err.println("❌ FAILED ToolProvider: " + provider.getClass().getName());
                 e.printStackTrace();
             }
         }

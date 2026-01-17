@@ -2,6 +2,7 @@ package core.mcp.command;
 
 import com.intuit.karate.driver.Driver;
 import core.mcp.strategy.ValidationStrategy;
+import core.platform.mobile.MobileCustom;
 import core.platform.web.ChromeCustom;
 
 public abstract class AbstractDriverCommand extends AbstractToolCommand {
@@ -20,6 +21,10 @@ public abstract class AbstractDriverCommand extends AbstractToolCommand {
 
     protected ChromeCustom getChrome() {
         return (ChromeCustom)driver;
+    }
+
+    protected MobileCustom getMobile() {
+        return (MobileCustom)driver;
     }
 
     @Override

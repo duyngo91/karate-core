@@ -1,5 +1,7 @@
 package core.mcp.constant;
 
+import core.mcp.command.web.ExecuteScriptCommand;
+
 public class ToolNames {
     // ===== Parameters =====
     public static final String LOCATOR = "locator";
@@ -30,6 +32,8 @@ public class ToolNames {
     public static final String GET_PAGE_TITLE = "get_page_title";
     public static final String CLOSE = "close";
     public static final String EXECUTE_SCRIPT = "execute_script";
+    public static final String GET_SOURCE_PAGE = "get_source_page";
+    public static final String GET_OPTIMIZED_SOURCE_PAGE = "get_optimized_source_page";
 
     // ===== Tab =====
     public static final String OPEN_NEW_TAB = "open_new_tab";
@@ -60,7 +64,8 @@ public class ToolNames {
     public static final String CONNECT_ANDROID = "connect_android";
     public static final String MOBILE_CLICK = "mobile_click";
     public static final String MOBILE_CLOSE = "mobile_close";
-    
+    public static final String MOBILE_GET_ALL_ELEMENTS_ON_SCREEN = "mobile_get_all_elements_on_screen";
+
     // ===== Recording =====
     public static final String START_RECORDING = "start_recording";
     public static final String STOP_RECORDING = "stop_recording";

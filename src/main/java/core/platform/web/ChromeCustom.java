@@ -939,7 +939,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     @AutoDef
     public String getOptimizedPageSource() {
         try {
-            String jsScript = FileUtils.toString(getClass().getResourceAsStream("/get-optimized-page-source.js"));
+            String jsScript = FileUtils.toString(getClass().getResourceAsStream("/get-optimized-page-source_v2.js"));
             return script(jsScript).toString();
         } catch (Exception e) {
             Logger.error("Failed to load optimized page source script: %s", e.getMessage());

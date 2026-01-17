@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class MobileCloseCommand extends AbstractDriverCommand {
     public MobileCloseCommand(Driver driver) {
-        super(driver, new LocatorValidationStrategy());
+        super(driver,null);
     }
 
     @Override

@@ -6,6 +6,7 @@ import core.mcp.command.record.StopRecordingCommand;
 import core.mcp.constant.ToolNames;
 import core.mcp.record.ScriptRecorder;
 import core.mcp.record.mapper.web.ExecuteScriptStepMapper;
+import core.mcp.record.mapper.web.InitBrowserStepMapper;
 import core.mcp.record.mapper.web.NavigateStepMapper;
 import core.mcp.record.mapper.StepMapper;
 import core.mcp.record.mapper.web.checkbox.CBIsCheckedStepMapper;
@@ -27,6 +28,7 @@ import io.modelcontextprotocol.server.McpServerFeatures;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
 
 public class RecordingTools extends BaseToolExecutor implements ToolProvider {
 ;
@@ -60,26 +62,8 @@ public class RecordingTools extends BaseToolExecutor implements ToolProvider {
     }
 
     private List<StepMapper> getMappers() {
-        List<StepMapper> mappers = new ArrayList<>();
-        mappers.add(new NavigateStepMapper());
-        mappers.add(new ClickStepMapper());
-        mappers.add(new InputStepMapper());
-        mappers.add(new ClearStepMapper());
-        mappers.add(new GetTextStepMapper());
-        mappers.add(new MouseClickStepMapper());
-        mappers.add(new CBSetStepMapper());
-        mappers.add(new CBIsCheckedStepMapper());
-        mappers.add(new DLSelectStepMapper());
-        mappers.add(new DLSelectContainsStepMapper());
-        mappers.add(new DLSearchStepMapper());
-        mappers.add(new DLGetOptionsStepMapper());
-        mappers.add(new OpenNewTabStepMapper());
-        mappers.add(new SwitchTabStepMapper());
-        mappers.add(new SwitchTabContainsStepMapper());
-        mappers.add(new CloseTabStepMapper());
-        mappers.add(new GetTabsStepMapper());
-        mappers.add(new TableGetDataStepMapper());
-        mappers.add(new ExecuteScriptStepMapper());
-        return mappers;
+        ServiceLoader<StepMapper> loader = ServiceLoader.load(StepMapper.class);
+        return new ArrayList<>(loader.stream().map(ServiceLoader.Provider::get).toList());
     }
+
 }

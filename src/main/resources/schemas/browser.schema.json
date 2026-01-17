@@ -70,5 +70,25 @@
       "script"
     ],
     "additionalProperties": false
+  },
+  "get_source_page": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      }
+    },
+    "additionalProperties": false
+  },
+  "get_optimized_source_page": {
+    "type": "object",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      }
+    },
+    "additionalProperties": false
   }
 }

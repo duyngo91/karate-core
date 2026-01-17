@@ -35,7 +35,6 @@ public class KarateMCPServer {
 
         // Print metrics on shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("\n=== MCP Metrics ===");
             metricsInterceptor.getStats().forEach((tool, stats) -> 
                 System.out.println(tool + ": " + stats)
             );

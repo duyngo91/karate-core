@@ -45,5 +45,16 @@
       }
     },
     "additionalProperties": false
+  },
+  "mobile_get_all_elements_on_screen": {
+    "type": "object",
+    "description": "mobile get all elements on screen",
+    "properties": {
+      "session": {
+        "type": "string",
+        "description": "Session name (default: mcp_session)"
+      }
+    },
+    "additionalProperties": false
   }
 }

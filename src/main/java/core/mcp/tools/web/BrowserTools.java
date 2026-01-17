@@ -35,7 +35,16 @@ public class BrowserTools extends BaseToolExecutor implements ToolProvider {
             tool().name(ToolNames.EXECUTE_SCRIPT)
                 .description("Execute JS script")
                 .command(webCommand(ExecuteScriptCommand::new))
-                .build()
+                .build(),
+
+            tool().name(ToolNames.GET_SOURCE_PAGE)
+                    .description("Get Source Page html")
+                    .command(webCommand(GetSourcePageCommand::new))
+                    .build(),
+            tool().name(ToolNames.GET_OPTIMIZED_SOURCE_PAGE)
+                    .description("Get Optimized Source Page html")
+                    .command(webCommand(GetSourceOptimizedPageCommand::new))
+                    .build()
         );
     }
 

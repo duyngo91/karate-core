@@ -8,8 +8,8 @@ import java.util.HashMap;
 public class WebTest {
     public static void main(String[] args) {
         ChromeCustom driver = ChromeCustom.start(new HashMap<>());
-        driver.setUrl("https://www.baidu.com");
-        driver.input("//input[@id='kw']", "Karate MCP");
+        driver.setUrl("https://globedr.com/");
+        System.out.println(driver.getOptimizedPageSource());
         driver.delay(5000);
     }
 }
