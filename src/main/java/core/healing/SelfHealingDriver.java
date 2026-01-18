@@ -2,13 +2,15 @@ package core.healing;
 
 import core.healing.application.HealingOrchestrator;
 import core.healing.application.HealingStore;
-import core.healing.application.port.HealingMonitor;
+import core.healing.application.locator.LocatorMapper;
+import core.healing.application.port.CandidateProvider;
+import core.healing.application.port.IHealingDriver;
 import core.healing.domain.DefaultCandidateExtractor;
-import core.healing.domain.HealingEngine;
-import core.healing.domain.port.GoldenStateStore;
+import core.healing.application.port.GoldenStateStore;
 import core.healing.infrastructure.InMemoryHealingStore;
+import core.healing.infrastructure.candidate.JsCandidateProvider;
+import core.healing.runtime.HealingCache;
 import core.healing.runtime.HealingRuntime;
-import core.platform.utils.Logger;
 
 public class SelfHealingDriver {
 
@@ -21,11 +23,14 @@ public class SelfHealingDriver {
         this.driver = driver;
         goldenStateStore = HealingRuntime.get().goldenStateStore();
         cache = new InMemoryHealingStore(HealingCache.getInstance());
+        CandidateProvider candidateProvider = new JsCandidateProvider(driver);
+
         this.orchestrator = new HealingOrchestrator(
                 cache,
-                HealingRuntime.get().goldenStateStore(),
+                goldenStateStore,
                 HealingRuntime.get().engine(),
                 new DefaultCandidateExtractor(),
+                candidateProvider,
                 HealingRuntime.get().monitor()
         );
     }

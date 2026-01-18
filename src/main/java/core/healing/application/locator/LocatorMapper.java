@@ -1,4 +1,6 @@
-package core.healing;
+package core.healing.application.locator;
+
+import core.healing.infrastructure.locator.LocatorRepository;
 
 import java.util.HashMap;
 import java.util.Map;

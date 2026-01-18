@@ -1,7 +1,7 @@
 package core.healing.infrastructure;
 
-import core.healing.HealingCache;
 import core.healing.application.HealingStore;
+import core.healing.runtime.HealingCache;
 
 public class InMemoryHealingStore implements HealingStore {
 

@@ -1,4 +1,4 @@
-package core.healing.rag;
+package core.healing.infrastructure.embedding;
 
 import core.platform.utils.Logger;
 import dev.langchain4j.model.embedding.EmbeddingModel;

@@ -1,7 +1,7 @@
 package core.healing.infrastructure.golden.extractor;
 
-import core.healing.rag.ElementMetadata;
-import core.healing.IHealingDriver;
+import core.healing.application.port.IHealingDriver;
+import core.healing.domain.model.ElementMetadata;
 
 import java.util.HashMap;
 import java.util.Map;

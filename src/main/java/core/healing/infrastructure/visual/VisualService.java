@@ -1,6 +1,6 @@
-package core.healing.visual;
+package core.healing.infrastructure.visual;
 
-import core.healing.IHealingDriver;
+import core.healing.application.port.IHealingDriver;
 import core.platform.utils.Logger;
 import nu.pattern.OpenCV;
 import org.opencv.core.*;

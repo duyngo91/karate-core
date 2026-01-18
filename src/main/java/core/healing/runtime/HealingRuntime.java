@@ -1,71 +1,50 @@
 package core.healing.runtime;
 
-import core.healing.HealingConfig;
+import core.healing.application.locator.LocatorMapper;
 import core.healing.application.port.HealingMonitor;
 import core.healing.domain.HealingEngine;
-import core.healing.domain.port.GoldenStateStore;
-import core.healing.domain.strategy.*;
+import core.healing.application.port.GoldenStateStore;
+import core.healing.domain.strategy.HealingStrategy;
+import core.healing.infrastructure.config.HealingConfig;
 import core.healing.infrastructure.golden.GoldenStateRecorder;
-import core.healing.infrastructure.golden.embedding.DefaultEmbeddingGenerator;
+import core.healing.infrastructure.embedding.DefaultEmbeddingGenerator;
 import core.healing.infrastructure.golden.extractor.JsDomSnapshotExtractor;
 import core.healing.infrastructure.golden.repository.JsonFileGoldenStateRepository;
 import core.healing.infrastructure.golden.visual.DefaultVisualSnapshotService;
+import core.healing.infrastructure.locator.LocatorRepository;
 import core.healing.infrastructure.monitor.CompositeHealingMonitor;
 import core.healing.infrastructure.monitor.HtmlHealingMonitor;
 import core.healing.infrastructure.monitor.LogHealingMonitor;
 import core.healing.infrastructure.rag.RagGoldenStateStore;
-import core.healing.rag.EmbeddingService;
+import core.healing.infrastructure.embedding.EmbeddingService;
 import core.platform.utils.Logger;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
 
 public final class HealingRuntime {
 
     private static HealingRuntime INSTANCE;
-
     private final HealingMonitor monitor;
     private final GoldenStateStore goldenStateStore;
     private final HealingEngine engine;
 
+
     private HealingRuntime() {
-
-        // --- Golden State ---
-        JsonFileGoldenStateRepository repository = new JsonFileGoldenStateRepository("element-metadata.json");
-        GoldenStateRecorder recorder = new GoldenStateRecorder(
-                new JsDomSnapshotExtractor(),
-                new DefaultEmbeddingGenerator(),
-                new DefaultVisualSnapshotService(),
-                repository
-        );
-
-        this.goldenStateStore = new RagGoldenStateStore(recorder, repository);
-
-        // --- Engine ---
-        HealingStrategyRegistry registry = new HealingStrategyRegistry();
-        registry.registerAll(goldenStateStore);
-        boolean parallel = "PARALLEL".equalsIgnoreCase(HealingConfig.getInstance().getExecutionMode());
-        this.engine = new HealingEngine(registry.ordered(), parallel);
-
-        // --- Monitor ---
-        this.monitor = new CompositeHealingMonitor(
-                List.of(new LogHealingMonitor(), new HtmlHealingMonitor("target/healing-report.html"))
-        );
-
+        initLocatorInfrastructure();
+        this.goldenStateStore = initGoldenStateStore();
+        this.engine = initHealingEngine();
+        this.monitor = initMonitoring();
     }
 
     public static synchronized HealingRuntime start() {
         if (INSTANCE == null) {
             INSTANCE = new HealingRuntime();
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread(() -> INSTANCE.monitor.onFinish())
+            );
         }
         return INSTANCE;
-    }
-
-
-    public static void end() {
-        Runtime.getRuntime().addShutdownHook(
-                new Thread(() -> get().monitor().onFinish())
-        );
     }
 
 
@@ -87,6 +66,79 @@ public final class HealingRuntime {
 
     public HealingEngine engine() {
         return engine;
+    }
+
+    private void initLocatorInfrastructure() {
+        HealingConfig config = HealingConfig.getInstance();
+        if (!config.isEnabled()) return;
+
+        File dir = new File(config.getLocatorPath());
+        if (!dir.exists()) {
+            Logger.warn("[Healing] Locator path not found: %s", config.getLocatorPath());
+            return;
+        }
+
+        LocatorRepository repo = LocatorRepository.getInstance();
+        int count = scan(dir, repo);
+        LocatorMapper.getInstance().buildIndex();
+
+        Logger.info("[Healing] Loaded %d locator files", count);
+    }
+
+    private HealingMonitor initMonitoring() {
+        return new CompositeHealingMonitor(
+                List.of(new LogHealingMonitor(), new HtmlHealingMonitor("target/healing-report.html"))
+        );
+    }
+
+    private HealingEngine initHealingEngine() {
+        // --- Engine ---
+        HealingStrategyRegistry registry = new HealingStrategyRegistry();
+        HealingStrategyFactory factory = new HealingStrategyFactory(goldenStateStore, EmbeddingService.getInstance());
+        List<String> config = HealingConfig.getInstance().getStrategies();
+        if (config == null || config.isEmpty()) {
+            config = List.of(
+                    "ExactAttributeStrategy",
+                    "KeyBasedStrategy",
+                    "TextBasedStrategy",
+                    "CrossAttributeStrategy",
+                    "SemanticValueStrategy",
+                    "StructuralStrategy",
+                    "NeighborStrategy",
+                    "RagHealingStrategy"
+            );
+        }
+
+        for (String name : config) {
+            HealingStrategy s = factory.create(name);
+            if (s != null) registry.register(s);
+        }
+        boolean parallel = "PARALLEL".equalsIgnoreCase(HealingConfig.getInstance().getExecutionMode());
+        return new HealingEngine(registry.ordered(), parallel);
+    }
+    private GoldenStateStore initGoldenStateStore() {
+        // --- Golden State ---
+        JsonFileGoldenStateRepository repository = new JsonFileGoldenStateRepository("element-metadata.json");
+        GoldenStateRecorder recorder = new GoldenStateRecorder(
+                new JsDomSnapshotExtractor(),
+                new DefaultEmbeddingGenerator(),
+                new DefaultVisualSnapshotService(),
+                repository
+        );
+
+        return new RagGoldenStateStore(recorder, repository);
+    }
+
+    private int scan(File dir, LocatorRepository repo) {
+        int count = 0;
+        for (File f : dir.listFiles()) {
+            if (f.isDirectory()) count += scan(f, repo);
+            else if (f.getName().endsWith(".json")) {
+                repo.loadFromFile(f.getAbsolutePath());
+                count++;
+            }
+        }
+        return count;
     }
 
 

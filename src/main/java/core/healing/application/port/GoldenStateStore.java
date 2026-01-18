@@ -1,7 +1,6 @@
-package core.healing.domain.port;
+package core.healing.application.port;
 
-import core.healing.IHealingDriver;
-import core.healing.rag.ElementMetadata;
+import core.healing.domain.model.ElementMetadata;
 
 /**
  * Domain Port

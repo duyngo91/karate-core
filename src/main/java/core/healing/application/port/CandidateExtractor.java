@@ -1,4 +1,4 @@
-package core.healing.domain;
+package core.healing.application.port;
 
 import core.healing.domain.model.ElementNode;
 

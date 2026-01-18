@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.intuit.karate.core.FeatureRuntime;
 import com.intuit.karate.core.ScenarioRuntime;
-import com.intuit.karate.driver.Driver;
 import com.intuit.karate.http.HttpClientFactory;
 import core.mcp.command.AbstractDriverCommand;
 import core.mcp.config.McpConfig;

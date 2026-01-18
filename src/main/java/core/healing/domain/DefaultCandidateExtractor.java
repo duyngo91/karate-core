@@ -1,5 +1,6 @@
 package core.healing.domain;
 
+import core.healing.application.port.CandidateExtractor;
 import core.healing.domain.model.ElementNode;
 import core.platform.utils.Logger;
 

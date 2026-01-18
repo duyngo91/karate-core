@@ -1,7 +1,7 @@
 package core.healing.infrastructure.monitor;
 
-import  core.healing.application.port.HealingMonitor;
-import  core.healing.domain.model.HealingEvent;
+import core.healing.application.port.HealingMonitor;
+import core.healing.domain.model.HealingEvent;
 
 import java.util.ArrayList;
 import java.util.List;

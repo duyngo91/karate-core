@@ -1,6 +1,7 @@
 package core.healing.infrastructure.monitor;
 
 import core.healing.domain.model.HealingEvent;
+
 import java.util.List;
 
 public interface HealingReportRenderer {

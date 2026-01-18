@@ -1,7 +1,5 @@
 package core.mcp.constant;
 
-import core.mcp.command.web.ExecuteScriptCommand;
-
 public class ToolNames {
     // ===== Parameters =====
     public static final String LOCATOR = "locator";

@@ -1,4 +1,4 @@
-package core.healing.rag;
+package core.healing.domain.model;
 
 import java.util.Map;
 

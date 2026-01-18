@@ -1,5 +1,8 @@
 package core.healing.utils;
 
+import core.healing.infrastructure.config.HealingConfig;
+import core.healing.infrastructure.embedding.EmbeddingService;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +50,7 @@ public class SemanticMatcher {
                 + 0.10 * substring; // Bonus for containment
 
         // Check Mode
-        String mode = core.healing.HealingConfig.getInstance().semanticMode;
+        String mode = HealingConfig.getInstance().semanticMode;
         if ("LEGACY".equalsIgnoreCase(mode)) {
             return Math.min(1.0, lexicalScore);
         }
@@ -66,8 +69,8 @@ public class SemanticMatcher {
                     return lexicalScore;
                 }
 
-                float[] vec1 = core.healing.rag.EmbeddingService.getInstance().embed(value1);
-                float[] vec2 = core.healing.rag.EmbeddingService.getInstance().embed(value2);
+                float[] vec1 = EmbeddingService.getInstance().embed(value1);
+                float[] vec2 = EmbeddingService.getInstance().embed(value2);
 
                 if (vec1.length > 0 && vec2.length > 0) {
                     double vectorScore = cosineSimilarity(vec1, vec2);

@@ -1,13 +1,16 @@
 package core.healing.domain;
 
-import core.healing.HealingConfig;
-import core.healing.IHealingDriver;
+import core.healing.application.port.IHealingDriver;
 import core.healing.domain.model.*;
-import core.healing.domain.strategy.*;
-import core.healing.engine.CandidateFinder;
+import core.healing.domain.strategy.HealingStrategy;
+import core.healing.domain.strategy.VisualHealingStrategy;
+import core.healing.infrastructure.config.HealingConfig;
 import core.platform.utils.Logger;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 
 /**
@@ -29,17 +32,8 @@ public class HealingEngine {
 
 
 
-    public HealingResult heal(IHealingDriver driver, ElementNode original) {
-        long start = System.currentTimeMillis();
-        List<ElementNode> candidates = CandidateFinder.findCandidates(driver);
-        Logger.info("[Healing] Found %d candidates on page. (Time: %d ms)", candidates.size(), System.currentTimeMillis() - start);
-
-        if (candidates.size() > HealingConfig.MAX_CANDIDATES) {
-            candidates = candidates.subList(0, HealingConfig.MAX_CANDIDATES);
-        }
-
+    public HealingResult heal(IHealingDriver driver, ElementNode original, List<ElementNode> candidates) {
         Map<ElementNode, ElementScore> scoreMap;
-
         if (isParallel) {
             scoreMap = new java.util.concurrent.ConcurrentHashMap<>();
             try {

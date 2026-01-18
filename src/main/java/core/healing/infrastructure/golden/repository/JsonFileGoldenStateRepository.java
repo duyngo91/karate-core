@@ -3,7 +3,7 @@ package core.healing.infrastructure.golden.repository;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import core.healing.rag.ElementMetadata;
+import core.healing.domain.model.ElementMetadata;
 import core.platform.utils.Logger;
 
 import java.io.Reader;

@@ -1,4 +1,4 @@
-package core.healing.infrastructure.golden.embedding;
+package core.healing.infrastructure.embedding;
 
 
 public interface EmbeddingGenerator {

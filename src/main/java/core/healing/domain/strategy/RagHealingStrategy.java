@@ -1,10 +1,9 @@
 package core.healing.domain.strategy;
 
 import core.healing.domain.model.ElementNode;
-import core.healing.rag.ElementMetadata;
-import core.healing.rag.EmbeddingService;
-import core.healing.infrastructure.golden.GoldenStateRecorder;
-import core.healing.domain.port.GoldenStateStore;
+import core.healing.application.port.GoldenStateStore;
+import core.healing.domain.model.ElementMetadata;
+import core.healing.infrastructure.embedding.EmbeddingService;
 /**
  * Strategy 8: RAG Healing (Vector Similarity)
  * Uses vector embeddings to match elements based on semantic similarity.

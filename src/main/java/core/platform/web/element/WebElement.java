@@ -1,7 +1,9 @@
 package core.platform.web.element;
 
-import com.intuit.karate.driver.*;
-import net.minidev.json.JSONArray;
+import com.intuit.karate.driver.Driver;
+import com.intuit.karate.driver.Element;
+import com.intuit.karate.driver.Finder;
+import com.intuit.karate.driver.Mouse;
 
 import java.util.List;
 import java.util.Map;

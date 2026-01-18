@@ -1,4 +1,4 @@
-package core.healing;
+package core.healing.infrastructure.locator;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

@@ -1,5 +1,6 @@
-package core.healing;
+package core.healing.runtime;
 
+import core.healing.infrastructure.config.HealingConfig;
 import core.platform.utils.Logger;
 
 import java.util.concurrent.ConcurrentHashMap;

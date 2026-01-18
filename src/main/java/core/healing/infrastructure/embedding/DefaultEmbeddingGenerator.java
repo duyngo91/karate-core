@@ -1,6 +1,4 @@
-package core.healing.infrastructure.golden.embedding;
-
-import core.healing.rag.EmbeddingService;
+package core.healing.infrastructure.embedding;
 
 public class DefaultEmbeddingGenerator implements EmbeddingGenerator {
 

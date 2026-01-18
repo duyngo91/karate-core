@@ -1,8 +1,8 @@
 package core.healing.infrastructure.golden.visual;
 
-import core.healing.HealingConfig;
-import core.healing.IHealingDriver;
-import core.healing.visual.VisualService;
+import core.healing.application.port.IHealingDriver;
+import core.healing.infrastructure.config.HealingConfig;
+import core.healing.infrastructure.visual.VisualService;
 
 import java.awt.image.BufferedImage;
 

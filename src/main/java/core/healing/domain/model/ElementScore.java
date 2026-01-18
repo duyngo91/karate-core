@@ -1,6 +1,6 @@
 package core.healing.domain.model;
 
-import core.healing.HealingConfig;
+import core.healing.infrastructure.config.HealingConfig;
 
 import java.util.ArrayList;
 import java.util.Comparator;

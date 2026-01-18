@@ -1,7 +1,7 @@
 package core.healing.infrastructure.golden.repository;
 
 
-import core.healing.rag.ElementMetadata;
+import core.healing.domain.model.ElementMetadata;
 
 import java.util.Map;
 

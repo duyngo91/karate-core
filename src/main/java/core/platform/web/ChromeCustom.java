@@ -10,7 +10,9 @@ import com.intuit.karate.driver.Element;
 import com.intuit.karate.http.HttpClientFactory;
 import com.intuit.karate.http.Response;
 import com.intuit.karate.shell.Command;
-import core.healing.*;
+import core.healing.SelfHealingDriver;
+import core.healing.application.port.IHealingDriver;
+import core.healing.runtime.HealingRuntime;
 import core.platform.common.Configuration;
 import core.platform.common.Constants;
 import core.platform.exceptions.ElementNotFoundException;
@@ -77,6 +79,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         super.client.setTextHandler(messageHandler.createTextHandler());
         this.dlManager = DropListServiceManager.getInstance();
         this.tableManager = TableServiceManager.getInstance();
+        HealingRuntime.start();
         this.healer = new SelfHealingDriver(this);
     }
 

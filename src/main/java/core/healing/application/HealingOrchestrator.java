@@ -1,15 +1,14 @@
 package core.healing.application;
 
-import core.healing.IHealingDriver;
-import core.healing.domain.CandidateExtractor;
+import core.healing.application.port.*;
 import core.healing.domain.HealingEngine;
-import core.healing.domain.model.HealingEvent;
-import core.healing.domain.port.GoldenStateStore;
 import core.healing.domain.model.ElementNode;
+import core.healing.domain.model.HealingEvent;
 import core.healing.domain.model.HealingResult;
-import core.healing.application.port.HealingMonitor;
 
+import java.util.List;
 import java.util.Optional;
+
 
 public class HealingOrchestrator {
     private final HealingStore store;
@@ -17,12 +16,15 @@ public class HealingOrchestrator {
     private final HealingEngine engine;
     private final CandidateExtractor extractor;
     private final HealingMonitor monitor;
+    private final CandidateProvider candidateProvider;
+
 
     public HealingOrchestrator(
             HealingStore store,
             GoldenStateStore goldenStateStore,
             HealingEngine engine,
             CandidateExtractor extractor,
+            CandidateProvider candidateProvider,
             HealingMonitor monitor) {
 
         this.store = store;
@@ -30,6 +32,10 @@ public class HealingOrchestrator {
         this.engine = engine;
         this.extractor = extractor;
         this.monitor = monitor;
+        this.candidateProvider = candidateProvider;
+
+
+
     }
 
     // ==========================
@@ -68,7 +74,8 @@ public class HealingOrchestrator {
             IHealingDriver driver) {
 
         ElementNode target = extractor.extract(elementId, originalLocator);
-        HealingResult result = engine.heal(driver, target);
+        List<ElementNode> candidates = candidateProvider.getCandidates();
+        HealingResult result = engine.heal(driver, target, candidates);
 
         if (!result.isSuccess()) {
             return Optional.empty();
@@ -103,13 +110,18 @@ public class HealingOrchestrator {
             String originalLocator,
             IHealingDriver driver) {
 
-        // Phase 1
+        // ===== PHASE 0: CACHE =====
         Optional<String> fast = tryFastHeal(elementId, driver);
         if (fast.isPresent()) {
             return fast;
         }
 
-        // Phase 2
+        // ===== PHASE 1: ORIGINAL =====
+        if (driver.exists(originalLocator)) {
+            return originalLocator.describeConstable();
+        }
+
+        // ===== PHASE 2: HEALING =====
         return deepHeal(elementId, originalLocator, driver);
     }
 

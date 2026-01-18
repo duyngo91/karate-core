@@ -1,9 +1,8 @@
 package core.healing.domain.strategy;
 
-import core.healing.IHealingDriver;
-import core.healing.engine.CandidateFinder;
+import core.healing.application.port.IHealingDriver;
 import core.healing.domain.model.ElementNode;
-import core.healing.visual.VisualService;
+import core.healing.infrastructure.visual.VisualService;
 import core.platform.utils.Logger;
 
 import java.awt.image.BufferedImage;

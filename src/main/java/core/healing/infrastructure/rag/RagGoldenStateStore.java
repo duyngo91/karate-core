@@ -1,10 +1,10 @@
 package core.healing.infrastructure.rag;
 
-import core.healing.IHealingDriver;
-import core.healing.domain.port.GoldenStateStore;
+import core.healing.application.port.IHealingDriver;
+import core.healing.application.port.GoldenStateStore;
 import core.healing.infrastructure.golden.GoldenStateRecorder;
 import core.healing.infrastructure.golden.repository.GoldenStateRepository;
-import core.healing.rag.ElementMetadata;
+import core.healing.domain.model.ElementMetadata;
 
 /**
  * Adapter: Domain → Golden infra

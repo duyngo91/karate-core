@@ -1,11 +1,11 @@
 package core.healing.infrastructure.golden;
 
-import core.healing.IHealingDriver;
+import core.healing.application.port.IHealingDriver;
+import core.healing.infrastructure.embedding.EmbeddingGenerator;
 import core.healing.infrastructure.golden.extractor.DomSnapshotExtractor;
-import core.healing.infrastructure.golden.embedding.EmbeddingGenerator;
 import core.healing.infrastructure.golden.repository.GoldenStateRepository;
 import core.healing.infrastructure.golden.visual.VisualSnapshotService;
-import core.healing.rag.ElementMetadata;
+import core.healing.domain.model.ElementMetadata;
 import core.platform.utils.Logger;
 
 /**
