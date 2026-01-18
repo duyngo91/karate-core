@@ -11,6 +11,7 @@ import com.intuit.karate.http.HttpClientFactory;
 import com.intuit.karate.http.Response;
 import com.intuit.karate.shell.Command;
 import core.healing.SelfHealingDriver;
+import core.healing.application.HealingBootstrap;
 import core.healing.application.port.IHealingDriver;
 import core.healing.runtime.HealingRuntime;
 import core.platform.common.Configuration;
@@ -80,7 +81,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         this.dlManager = DropListServiceManager.getInstance();
         this.tableManager = TableServiceManager.getInstance();
         HealingRuntime.start();
-        this.healer = new SelfHealingDriver(this);
+        this.healer = HealingBootstrap.create(this);
     }
 
     private static String determineChromePath() {
@@ -501,16 +502,12 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
             String rawLocator,
             Function<String, Element> action
     ) {
-        try {
-            String resolved = healer.tryFastHeal(rawLocator);
-            Element el = action.apply(resolved);
+        return healer.execute(rawLocator, l -> {
+            Element el = action.apply(l);
             return new WebElement(this, el);
-        } catch (Exception e) {
-            String resolved = healer.deepHeal(rawLocator);
-            Element el = action.apply(resolved);
-            return new WebElement(this, el);
-        }
+        });
     }
+
 
     @Override
     public Element waitFor(String locator) {

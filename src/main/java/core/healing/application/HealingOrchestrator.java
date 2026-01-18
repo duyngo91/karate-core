@@ -1,5 +1,7 @@
 package core.healing.application;
 
+import com.intuit.karate.driver.Element;
+import core.healing.application.locator.LocatorMapper;
 import core.healing.application.port.*;
 import core.healing.domain.HealingEngine;
 import core.healing.domain.model.ElementNode;
@@ -8,6 +10,8 @@ import core.healing.domain.model.HealingResult;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 
 public class HealingOrchestrator {
@@ -125,5 +129,22 @@ public class HealingOrchestrator {
         return deepHeal(elementId, originalLocator, driver);
     }
 
+    public <T> T executeWithHealing(
+            String locator,
+            IHealingDriver driver,
+            Function<String, T> action
+    ) {
+        String elementId = LocatorMapper.getInstance().getElementId(locator);
+
+        // Phase 0–1
+        Optional<String> fast = tryFastHeal(elementId, driver);
+        try {
+            return action.apply(fast.orElse(locator));
+        } catch (Exception e) {
+            // Phase 2–3
+            Optional<String> deep = deepHeal(elementId, locator, driver);
+            return action.apply(deep.orElse(locator));
+        }
+    }
 
 }

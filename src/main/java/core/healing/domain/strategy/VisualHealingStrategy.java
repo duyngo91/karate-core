@@ -58,7 +58,7 @@ public class VisualHealingStrategy implements HealingStrategy {
             BufferedImage candidateImage = candidate.getScreenshot();
             if (candidateImage == null && driver != null) {
                 Logger.debug("Lazy Capture: Capturing screenshot for candidate %s", elementId);
-                String locator = CandidateFinder.constructTempLocator(candidate);
+                String locator = constructTempLocator(candidate);
                 if (locator != null) {
                     candidateImage = visualService.captureScreenshot(driver, locator);
                     candidate.setScreenshot(candidateImage);
@@ -112,5 +112,36 @@ public class VisualHealingStrategy implements HealingStrategy {
     @Override
     public double getHealingHold() {
         return 0.5;
+    }
+
+    /**
+     * Construct a temporary CSS/XPath locator for screenshot capture.
+     */
+    private String constructTempLocator(ElementNode node) {
+        // Try ID first (most reliable)
+        String id = node.getAttribute("id");
+        if (id != null && !id.isEmpty()) {
+            return "#" + id;
+        }
+
+        // Try name attribute
+        String name = node.getAttribute("name");
+        if (name != null && !name.isEmpty()) {
+            return "[name='" + name + "']";
+        }
+
+        // Try data-testid
+        String testId = node.getAttribute("data-testid");
+        if (testId != null && !testId.isEmpty()) {
+            return "[data-testid='" + testId + "']";
+        }
+
+        // Fallback: Use class if unique enough
+        String className = node.getAttribute("class");
+        if (className != null && !className.isEmpty() && !className.contains(" ")) {
+            return "." + className;
+        }
+
+        return null; // Can't create reliable locator
     }
 }
