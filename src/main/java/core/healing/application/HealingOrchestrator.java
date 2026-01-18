@@ -1,6 +1,5 @@
 package core.healing.application;
 
-import com.intuit.karate.driver.Element;
 import core.healing.application.locator.LocatorMapper;
 import core.healing.application.port.*;
 import core.healing.domain.HealingEngine;
@@ -11,7 +10,6 @@ import core.healing.domain.model.HealingResult;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 
 public class HealingOrchestrator {

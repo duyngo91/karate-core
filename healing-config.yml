@@ -2,7 +2,7 @@
 # This file controls the AI-powered healing engine for stable tests.
 
 # Main switch for the self-healing system
-enabled: true
+enabled: false
 
 # Whether to capture the 'Golden State' of successful elements (for RAG/History)
 captureGoldenState: true

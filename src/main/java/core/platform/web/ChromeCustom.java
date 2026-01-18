@@ -80,7 +80,6 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         super.client.setTextHandler(messageHandler.createTextHandler());
         this.dlManager = DropListServiceManager.getInstance();
         this.tableManager = TableServiceManager.getInstance();
-        HealingRuntime.start();
         this.healer = HealingBootstrap.create(this);
     }
 

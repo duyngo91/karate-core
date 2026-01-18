@@ -25,13 +25,14 @@ import java.util.List;
 public final class HealingRuntime {
 
     private static HealingRuntime INSTANCE;
-    private final HealingMonitor monitor;
-    private final GoldenStateStore goldenStateStore;
-    private final HealingEngine engine;
+    private HealingMonitor monitor;
+    private GoldenStateStore goldenStateStore;
+    private HealingEngine engine;
 
 
     private HealingRuntime() {
-        initLocatorInfrastructure();
+        HealingConfig config = HealingConfig.getInstance();
+        initLocatorInfrastructure(config);
         this.goldenStateStore = initGoldenStateStore();
         this.engine = initHealingEngine();
         this.monitor = initMonitoring();
@@ -68,9 +69,7 @@ public final class HealingRuntime {
         return engine;
     }
 
-    private void initLocatorInfrastructure() {
-        HealingConfig config = HealingConfig.getInstance();
-        if (!config.isEnabled()) return;
+    private void initLocatorInfrastructure(HealingConfig config) {
 
         File dir = new File(config.getLocatorPath());
         if (!dir.exists()) {
