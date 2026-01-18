@@ -58,7 +58,7 @@ public class Table extends WebElement {
         List<String> headers = new ArrayList<>();
         waitFor();
         String xpathHeaderWithIndex = getXpathHeader() + COLUMN_INDEX;
-        int totalHeaders = count();
+        int totalHeaders = ((ChromeCustom) driver).count(xpathHeader);
 
         for (int index = 0; index < totalHeaders; index++) {
             int col = index + 1;
@@ -106,12 +106,12 @@ public class Table extends WebElement {
         return list.stream().map(Common::removeAccentAndCamel).collect(Collectors.toList());
     }
     public int countRows() {
-        return new WebElement(driver, getXpathRow()).count();
+        return ((ChromeCustom) driver).count(getXpathRow());
     }
 
     public boolean isEmpty() {
         WebElement firstCell = new WebElement(driver, getXpathRow() + getXpathCell() + "[1]");
-        return firstCell.count() == 0 || firstCell.getText().contains(NO_DATA);
+        return ((ChromeCustom) driver).count(firstCell.getLocator()) == 0 || firstCell.getText().contains(NO_DATA);
     }
 
     public Table skips(String... headerNames) {
@@ -160,7 +160,7 @@ public class Table extends WebElement {
     }
 
     private String getCellValue(WebElement cell) {
-        String cellHTML = cell.outerHTML();
+        String cellHTML = ((ChromeCustom) driver).outerHTML(cell.getLocator());
 
         // Kiểm tra textarea
         if (cellHTML.contains(TEXT_AREA)) {

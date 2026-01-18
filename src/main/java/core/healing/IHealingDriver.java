@@ -3,11 +3,13 @@ package core.healing;
 import com.intuit.karate.driver.Driver;
 
 public interface IHealingDriver extends Driver {
-    boolean exist(String locator);
+    public boolean exist(String locator);
+    public boolean exist(String locator, int timeOutMilliSeconds);
+    public String text(String locator);
 
-    String text(String locator);
+    public Object script(String js);
 
-    Object script(String js);
 
-    String getType(); // e.g., "WEB", "ANDROID", "IOS"
+
+    public String getType(); // e.g., "WEB", "ANDROID", "IOS"
 }

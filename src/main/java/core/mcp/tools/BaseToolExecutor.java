@@ -3,7 +3,7 @@ package core.mcp.tools;
 import com.intuit.karate.driver.Driver;
 import core.mcp.command.AbstractDriverCommand;
 import core.mcp.config.McpConfig;
-import core.mcp.interceptor.ToolInterceptor;
+import core.mcp.hooks.ToolHook;
 import core.mcp.observer.ToolExecutionListener;
 import core.mcp.tools.registry.ToolBuilder;
 import core.mcp.validation.ArgumentValidator;
@@ -19,26 +19,26 @@ import java.util.function.Function;
 
 public abstract class BaseToolExecutor {
     protected final McpConfig config = McpConfig.getInstance();
-    protected final List<ToolInterceptor> interceptors = new ArrayList<>();
+    protected final List<ToolHook> hooks = new ArrayList<>();
     protected final List<ToolExecutionListener> listeners = new ArrayList<>();
-    private static final List<ToolInterceptor> globalInterceptors = new ArrayList<>();
+    private static final List<ToolHook> globalHooks = new ArrayList<>();
     private static final List<ToolExecutionListener> globalListeners = new ArrayList<>();
 
     public BaseToolExecutor() {
-        interceptors.addAll(globalInterceptors);
+        hooks.addAll(globalHooks);
         listeners.addAll(globalListeners);
     }
 
-    public static void registerGlobalInterceptor(ToolInterceptor interceptor) {
-        globalInterceptors.add(interceptor);
+    public static void registerGlobalInterceptor(ToolHook interceptor) {
+        globalHooks.add(interceptor);
     }
 
     public static void registerGlobalListener(ToolExecutionListener listener) {
         globalListeners.add(listener);
     }
 
-    public void addInterceptor(ToolInterceptor interceptor) {
-        interceptors.add(interceptor);
+    public void addInterceptor(ToolHook interceptor) {
+        hooks.add(interceptor);
     }
 
     public void addListener(ToolExecutionListener listener) {
@@ -84,13 +84,13 @@ public abstract class BaseToolExecutor {
     ) {
         long startTime = System.currentTimeMillis();
 
-        interceptors.forEach(i -> i.before(toolName, args));
+        hooks.forEach(i -> i.before(toolName, args));
 
         try {
             String result = action.apply(args);
             long duration = System.currentTimeMillis() - startTime;
 
-            interceptors.forEach(i -> i.after(toolName, result, duration));
+            hooks.forEach(i -> i.after(toolName, result, duration));
 
             if (record) {
                 listeners.forEach(l -> l.onToolExecuted(toolName, args, result));
@@ -99,7 +99,7 @@ public abstract class BaseToolExecutor {
             return success(result);
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
-            interceptors.forEach(i -> i.onError(toolName, e, duration));
+            hooks.forEach(i -> i.onError(toolName, e, duration));
             return error(e);
         }
     }

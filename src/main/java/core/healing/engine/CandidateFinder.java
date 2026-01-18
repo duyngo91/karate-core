@@ -1,7 +1,7 @@
 package core.healing.engine;
 
 import core.healing.IHealingDriver;
-import core.healing.model.ElementNode;
+import core.healing.domain.model.ElementNode;
 import core.platform.utils.Logger;
 
 import java.util.ArrayList;

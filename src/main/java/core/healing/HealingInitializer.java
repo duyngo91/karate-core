@@ -17,17 +17,7 @@ public class HealingInitializer {
         if (config.isEnabled()) {
             Logger.info("Self-healing system enabled");
             String path = config.getLocatorPath();
-
-            // Note: If path is a file (history), it might not be what loadLocatorsFromPath
-            // expects (dir)
-            // But we follow the user's requested logic for initialization
             loadLocatorsFromPath(path);
-
-            // Register shutdown hook for monitoring report
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                HealingMonitor.getInstance().generateReport();
-            }));
-
             initialized = true;
         }
     }

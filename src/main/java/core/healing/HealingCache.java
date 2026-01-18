@@ -34,8 +34,6 @@ public class HealingCache {
             return;
         if (originalLocator == null || healedLocator == null)
             return;
-        if (originalLocator.equals(healedLocator))
-            return;
 
         cache.put(originalLocator, healedLocator);
         Logger.debug("[HealingCache] Cached: '%s' -> '%s'", originalLocator, healedLocator);
@@ -48,7 +46,7 @@ public class HealingCache {
      * @return The healed locator if found, otherwise null.
      */
     public String get(String originalLocator) {
-        return cache.get(originalLocator);
+        return cache.getOrDefault(originalLocator, null);
     }
 
     /**

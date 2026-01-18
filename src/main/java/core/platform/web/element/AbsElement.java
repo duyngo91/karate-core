@@ -31,9 +31,10 @@ public abstract class AbsElement implements Element {
         } else {
             locate = locator;
         }
-        return driver.locateAll(locate)
-                .stream().map(x -> new WebElement(driver, x.getLocator()))
-                .collect(Collectors.toList());
+//        return driver.locateAll(locate)
+//                .stream().map(x -> new WebElement(driver, x.getLocator()))
+//                .collect(Collectors.toList());
+        return null;
     }
 
 

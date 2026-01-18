@@ -5,16 +5,16 @@
 enabled: true
 
 # Whether to capture the 'Golden State' of successful elements (for RAG/History)
-captureGoldenState: false
+captureGoldenState: true
 
 # Enable semantic-based matching strategies
 semanticEnabled: true
 
 # In-memory cache for speed (Global for the current JVM run)
-cacheEnabled: false
+cacheEnabled: true
 
 # RAG (Retrieval-Augmented Generation) based healing
-ragEnabled: false
+ragEnabled: true
 
 # Semantic strategy mode: 
 # - LEGACY: Previous algorithm

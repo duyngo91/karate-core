@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -46,6 +47,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     private static final int MAX_POINT = Constants.MAX_SCROLL_POINT;
     private final MessageHandler messageHandler;
     private final SelfHealingDriver healer;
+
 
     public static String of(String path) {
         if (path.contains("/"))
@@ -75,12 +77,7 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         super.client.setTextHandler(messageHandler.createTextHandler());
         this.dlManager = DropListServiceManager.getInstance();
         this.tableManager = TableServiceManager.getInstance();
-
-        // Auto-initialize healing if enabled
-        HealingInitializer.autoInit();
         this.healer = new SelfHealingDriver(this);
-
-
     }
 
     private static String determineChromePath() {
@@ -264,14 +261,60 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
                 : array.stream().map(o -> Boolean.parseBoolean(o.toString())).collect(Collectors.toList());
     }
 
-    @AutoDef
-    public int count(String locator) {
-        return new WebElement(this, locator).count();
-    }
 
     @AutoDef
     public boolean exist(String locator) {
         return count(locator) > 0;
+    }
+
+    @Override
+    public boolean exist(String locator, int timeOutMilliSeconds) {
+        return Wait.until(timeOutMilliSeconds, 1000, () -> count(locator) > 0);
+    }
+    @AutoDef
+    public String innerHTML(String selector) {
+        String temp = "(function() { var e = " + DriverOptions.selector(selector) + ";\n" + "return e.innerHTML" + "})();";
+        Object value = script(temp);
+        return value == null ? null : (String) value;
+    }
+
+
+    @AutoDef
+    public int count(String selector) {
+        JSONArray array = null;
+        try {
+            array = (JSONArray) scriptAll(selector, "_.children.length");
+        } catch (Exception ignored) {
+            return 0;
+        }
+        return array == null ? 0 : array.size();
+    }
+
+    @AutoDef
+    public boolean isVisible(String locator) {
+        Map<String, Object> position = getRect(locator);
+        return locate(locator).isPresent() && !(
+                position.get("x").equals(0) &&
+                        position.get("y").equals(0) &&
+                        position.get("width").equals(0) &&
+                        position.get("height").equals(0)
+        );
+    }
+
+
+    @AutoDef
+    public String outerHTML(String selector) {
+        String temp = "(function() { var e = " + DriverOptions.selector(selector) + ";\n" + "return e.outerHTML" + "})();";
+        Object value = script(temp);
+        return value == null ? null : (String) value;
+    }
+
+    @AutoDef
+    public void clickAll(String locator) {
+        locateAll(locator).forEach(e -> {
+            e.click();
+            delay(500);
+        });
     }
 
     @AutoDef
@@ -450,94 +493,55 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
             click(locator);
     }
 
+
+    private Element performWithHealing(
+            String rawLocator,
+            Function<String, Element> action
+    ) {
+        try {
+            String resolved = healer.tryFastHeal(rawLocator);
+            Element el = action.apply(resolved);
+            return new WebElement(this, el);
+        } catch (Exception e) {
+            String resolved = healer.deepHeal(rawLocator);
+            Element el = action.apply(resolved);
+            return new WebElement(this, el);
+        }
+    }
+
     @Override
     public Element waitFor(String locator) {
-        // 1. Check Global Cache first
-        if (core.healing.HealingCache.getInstance().contains(locator)) {
-            String cached = core.healing.HealingCache.getInstance().get(locator);
-            Logger.info("[Cache Hit] waitFor: %s -> %s", locator, cached);
-            try {
-                return new WebElement(this, getOptions().waitForAny(this, cached));
-            } catch (Exception e) {
-                Logger.warn("[Cache Invalid] Cached locator failed: %s", cached);
-                // If cached locator fails, we can either remove it or fall back
-            }
-        }
+        return performWithHealing(locator, l -> getOptions().waitForAny(this, l));
 
-        try {
-            Element el = new WebElement(this, getOptions().waitForAny(this, locator));
-            recordSuccess(locator);
-            return el;
-        } catch (Exception e) {
-            String healed = healer.tryHeal(locator);
-            return new WebElement(this, getOptions().waitForAny(this, healed, locator));
-        }
     }
 
     @Override
     public Element focus(String locator) {
-        String healed = healer.tryHeal(locator);
-        return new WebElement(this, super.focus(healed));
+        return performWithHealing(locator, super::focus);
     }
 
     @Override
     public Element clear(String locator) {
-        String healed = healer.tryHeal(locator);
-        return new WebElement(this, super.clear(healed));
+        return performWithHealing(locator, super::clear);
     }
 
     @Override
     public Element click(String locator) {
-        String healed = healer.tryHeal(locator);
-        return new WebElement(this, super.click(healed));
+        return performWithHealing(locator, super::click);
     }
 
     public Element select(String locator, String text) {
-        String healed = healer.tryHeal(locator);
-        return new WebElement(this, super.select(healed, text));
+        return performWithHealing(locator, l -> super.select(l, text));
     }
 
     @Override
     public Element select(String locator, int index) {
-        String healed = healer.tryHeal(locator);
-        return new WebElement(this, super.select(healed, index));
+        return performWithHealing(locator, l -> super.select(l, index));
     }
 
     @Override
     public Element input(String locator, String value) {
-        String healed = healer.tryHeal(locator);
-        return new WebElement(this, super.input(healed, value));
-    }
-
-
-
-    private void recordSuccess(String locator) {
-        try {
-            if (core.healing.HealingConfig.getInstance().isCaptureGoldenState()) {
-                LocatorMapper mapper = LocatorMapper.getInstance();
-                if (mapper.isManaged(locator)) {
-                    String elementId = mapper.getElementId(locator);
-                    core.healing.rag.GoldenStateRecorder.getInstance().captureAndSave(this, elementId, locator);
-                }
-            }
-        } catch (Exception e) {
-            Logger.warn("Failed to record success for %s: %s", locator, e.getMessage());
-        }
-    }
-
-    @AutoDef
-    public String innerHTML(String xpath) {
-        return new WebElement(this, xpath).innerHTML();
-    }
-
-    @AutoDef
-    public String outerHTML(String xpath) {
-        return new WebElement(this, xpath).outerHTML();
-    }
-
-    @AutoDef
-    public void clickAll(String locator) {
-        new WebElement(this, locator).clickAll();
+        return performWithHealing(locator, l -> super.input(l, value));
     }
 
     @AutoDef
@@ -649,8 +653,8 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     }
 
     @AutoDef
-    public String textContent(String xpath) {
-        return new WebElement(this, xpath).textContent();
+    public String textContent(String locator) {
+        return (String) script(locator, "_.textContent");
     }
 
     @AutoDef
@@ -811,17 +815,17 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         }
     }
 
-    public Map<String, Object> getRect(String xpath) {
-        return locate(xpath).getPosition();
+    public Map<String, Object> getRect(String locator) {
+        return locate(locator).getPosition();
     }
 
-    public double midX(String xpath) {
-        Map<String, Object> rect = getRect(xpath);
+    public double midX(String locator) {
+        Map<String, Object> rect = getRect(locator);
         return Double.parseDouble(rect.get("x").toString()) + Double.parseDouble(rect.get("width").toString()) / 2;
     }
 
-    public double midY(String xpath) {
-        Map<String, Object> rect = getRect(xpath);
+    public double midY(String locator) {
+        Map<String, Object> rect = getRect(locator);
         return Double.parseDouble(rect.get("y").toString()) + Double.parseDouble(rect.get("height").toString()) / 2;
     }
 

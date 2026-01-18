@@ -1,10 +1,9 @@
 package core.mcp;
 
 import core.mcp.config.McpConfig;
-import core.mcp.interceptor.LoggingInterceptor;
-import core.mcp.interceptor.MetricsInterceptor;
+import core.mcp.hooks.LoggingHook;
+import core.mcp.hooks.MetricsHook;
 import core.mcp.observer.RecordingListener;
-import core.mcp.schema.SchemaLoader;
 import core.mcp.tools.BaseToolExecutor;
 import core.mcp.tools.registry.ToolRegistry;
 import io.modelcontextprotocol.server.McpServer;
@@ -16,7 +15,7 @@ import io.modelcontextprotocol.spec.McpSchema;
 import java.util.List;
 
 public class KarateMCPServer {
-    private static final MetricsInterceptor metricsInterceptor = new MetricsInterceptor();
+    private static final MetricsHook metricsHook = new MetricsHook();
 
     public static void main(String[] args) {
         McpConfig config = McpConfig.getInstance();
@@ -35,7 +34,7 @@ public class KarateMCPServer {
 
         // Print metrics on shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            metricsInterceptor.getStats().forEach((tool, stats) -> 
+            metricsHook.getStats().forEach((tool, stats) ->
                 System.out.println(tool + ": " + stats)
             );
         }));
@@ -53,10 +52,10 @@ public class KarateMCPServer {
         
         // Register interceptors
         if (config.isLoggingEnabled()) {
-            BaseToolExecutor.registerGlobalInterceptor(new LoggingInterceptor());
+            BaseToolExecutor.registerGlobalInterceptor(new LoggingHook());
         }
         if (config.isMetricsEnabled()) {
-            BaseToolExecutor.registerGlobalInterceptor(metricsInterceptor);
+            BaseToolExecutor.registerGlobalInterceptor(metricsHook);
         }
         
         // Register listeners (Observer Pattern)

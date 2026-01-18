@@ -7,13 +7,14 @@ import java.util.stream.Collectors;
 
 public class CheckBox extends WebElement{
 
-    public CheckBox(Driver driver, String checkBox) {
-        super(driver, checkBox);
+    private String locator;
+    public CheckBox(Driver driver, String locator) {
+        super(driver, locator);
     }
 
 
     public List<CheckBox> getCheckBoxs(){
-        return driver.locateAll(locator)
+        return driver.locateAll(getLocator())
                 .stream().map(x -> new CheckBox(driver, x.getLocator()))
                 .collect(Collectors.toList());
     }

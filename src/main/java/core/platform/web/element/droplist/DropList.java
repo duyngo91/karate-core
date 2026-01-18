@@ -80,7 +80,7 @@ public class DropList extends WebElement  {
     public List<Element> getExactlyItem(){
         List<WebElement> list = driver.locateAll(getLocatorItems()).stream().map(e -> new WebElement(driver, e)).collect(Collectors.toList());
         if(list.isEmpty()) return new ArrayList<>();
-        return list.stream().filter(WebElement::isVisible).collect(Collectors.toList());
+        return list.stream().filter(e -> ((ChromeCustom) driver).isVisible(e.getLocator())).collect(Collectors.toList());
     }
 
     public void waitForAtLeastOneItemAppear(){
@@ -260,7 +260,7 @@ public class DropList extends WebElement  {
         List<String> result = new ArrayList<>();
         result.addAll(spans.stream().map( s -> s.getText().trim()).filter(s -> !s.isEmpty()).collect(Collectors.toList()));
         result.addAll(inputs.stream().map( s -> s.getValue().trim()).filter(s -> !s.isEmpty()).collect(Collectors.toList()));
-        result.add(textContent());
+        result.add(((ChromeCustom)driver).textContent(getLocator()).trim());
 
         return result.stream().distinct().collect(Collectors.toList());
     }

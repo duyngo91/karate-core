@@ -1,12 +1,6 @@
 package core.healing.strategy;
 
-import core.healing.model.ElementNode;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIf;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for SemanticValueStrategy
