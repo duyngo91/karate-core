@@ -12,11 +12,13 @@ import core.healing.infrastructure.golden.extractor.JsDomSnapshotExtractor;
 import core.healing.infrastructure.golden.repository.JsonFileGoldenStateRepository;
 import core.healing.infrastructure.golden.visual.DefaultVisualSnapshotService;
 import core.healing.infrastructure.locator.LocatorRepository;
-import core.healing.infrastructure.monitor.CompositeHealingMonitor;
-import core.healing.infrastructure.monitor.HtmlHealingMonitor;
-import core.healing.infrastructure.monitor.LogHealingMonitor;
-import core.healing.infrastructure.rag.RagGoldenStateStore;
+import core.healing.infrastructure.adapter.monitor.CompositeHealingMonitor;
+import core.healing.infrastructure.adapter.monitor.HtmlHealingMonitor;
+import core.healing.infrastructure.adapter.monitor.LogHealingMonitor;
+import core.healing.infrastructure.adapter.RagGoldenStateStore;
 import core.healing.infrastructure.embedding.EmbeddingService;
+import core.healing.application.port.VectorStoreAdapter;
+import core.healing.infrastructure.embedding.LangChainVectorStore;
 import core.platform.utils.Logger;
 
 import java.io.File;
@@ -28,13 +30,15 @@ public final class HealingRuntime {
     private HealingMonitor monitor;
     private GoldenStateStore goldenStateStore;
     private HealingEngine engine;
+    private VectorStoreAdapter vectorStore;
 
 
     private HealingRuntime() {
         HealingConfig config = HealingConfig.getInstance();
         initLocatorInfrastructure(config);
+        this.vectorStore = initVectorStore(config);
         this.goldenStateStore = initGoldenStateStore();
-        this.engine = initHealingEngine();
+        this.engine = initHealingEngine(config);
         this.monitor = initMonitoring();
     }
 
@@ -69,6 +73,10 @@ public final class HealingRuntime {
         return engine;
     }
 
+    public VectorStoreAdapter vectorStore() {
+        return vectorStore;
+    }
+
     private void initLocatorInfrastructure(HealingConfig config) {
 
         File dir = new File(config.getLocatorPath());
@@ -90,13 +98,13 @@ public final class HealingRuntime {
         );
     }
 
-    private HealingEngine initHealingEngine() {
+    private HealingEngine initHealingEngine(HealingConfig config) {
         // --- Engine ---
         HealingStrategyRegistry registry = new HealingStrategyRegistry();
-        HealingStrategyFactory factory = new HealingStrategyFactory(goldenStateStore, EmbeddingService.getInstance());
-        List<String> config = HealingConfig.getInstance().getStrategies();
-        if (config == null || config.isEmpty()) {
-            config = List.of(
+        HealingStrategyFactory factory = new HealingStrategyFactory(goldenStateStore, EmbeddingService.getInstance(), vectorStore);
+        List<String> strategyNames = config.getStrategies();
+        if (strategyNames == null || strategyNames.isEmpty()) {
+            strategyNames = List.of(
                     "ExactAttributeStrategy",
                     "KeyBasedStrategy",
                     "TextBasedStrategy",
@@ -108,12 +116,21 @@ public final class HealingRuntime {
             );
         }
 
-        for (String name : config) {
+        for (String name : strategyNames) {
             HealingStrategy s = factory.create(name);
             if (s != null) registry.register(s);
         }
-        boolean parallel = "PARALLEL".equalsIgnoreCase(HealingConfig.getInstance().getExecutionMode());
-        return new HealingEngine(registry.ordered(), parallel);
+
+        boolean parallel = "PARALLEL".equalsIgnoreCase(config.getExecutionMode());
+        return new HealingEngine(registry.ordered(), parallel, config.getMaxHealingThreads());
+    }
+
+    private VectorStoreAdapter initVectorStore(HealingConfig config) {
+        if (config.isVectorMemoryEnabled()) {
+            Logger.info("[Healing] Vector Memory enabled. Initializing LangChainVectorStore.");
+            return new LangChainVectorStore();
+        }
+        return null;
     }
     private GoldenStateStore initGoldenStateStore() {
         // --- Golden State ---

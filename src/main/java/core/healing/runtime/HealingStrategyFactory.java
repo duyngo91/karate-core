@@ -3,17 +3,21 @@ package core.healing.runtime;
 import core.healing.application.port.GoldenStateStore;
 import core.healing.domain.strategy.*;
 import core.healing.infrastructure.embedding.EmbeddingService;
+import core.healing.application.port.VectorStoreAdapter;
 
 public class HealingStrategyFactory {
 
     private final GoldenStateStore store;
     private final EmbeddingService embeddingService;
+    private final VectorStoreAdapter vectorStore;
 
     public HealingStrategyFactory(
             GoldenStateStore store,
-            EmbeddingService embeddingService) {
+            EmbeddingService embeddingService,
+            VectorStoreAdapter vectorStore) {
         this.store = store;
         this.embeddingService = embeddingService;
+        this.vectorStore = vectorStore;
     }
 
     public HealingStrategy create(String name) {
@@ -26,7 +30,7 @@ public class HealingStrategyFactory {
             case "StructuralStrategy" -> new StructuralStrategy();
             case "NeighborStrategy" -> new NeighborStrategy();
             case "RagHealingStrategy" ->
-                    new RagHealingStrategy(store, embeddingService);
+                    new RagHealingStrategy(store, embeddingService, vectorStore);
             case "VisualHealingStrategy" ->
                     new VisualHealingStrategy();
             default -> null;

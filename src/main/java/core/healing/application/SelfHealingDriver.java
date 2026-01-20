@@ -1,6 +1,5 @@
-package core.healing;
+package core.healing.application;
 
-import core.healing.application.HealingOrchestrator;
 import core.healing.application.port.IHealingDriver;
 
 import java.util.function.Function;

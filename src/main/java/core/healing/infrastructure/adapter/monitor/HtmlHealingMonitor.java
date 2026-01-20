@@ -1,7 +1,11 @@
-package core.healing.infrastructure.monitor;
+package core.healing.infrastructure.adapter.monitor;
 
 import core.healing.application.port.HealingMonitor;
 import core.healing.domain.model.HealingEvent;
+import core.healing.infrastructure.monitor.HealingReportRenderer;
+import core.healing.infrastructure.monitor.HealingReportWriter;
+import core.healing.infrastructure.monitor.HtmlReportRenderer;
+import core.healing.infrastructure.monitor.HtmlReportViewBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

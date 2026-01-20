@@ -10,10 +10,9 @@ import com.intuit.karate.driver.Element;
 import com.intuit.karate.http.HttpClientFactory;
 import com.intuit.karate.http.Response;
 import com.intuit.karate.shell.Command;
-import core.healing.SelfHealingDriver;
+import core.healing.application.SelfHealingDriver;
 import core.healing.application.HealingBootstrap;
 import core.healing.application.port.IHealingDriver;
-import core.healing.runtime.HealingRuntime;
 import core.platform.common.Configuration;
 import core.platform.common.Constants;
 import core.platform.exceptions.ElementNotFoundException;
@@ -271,6 +270,11 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
     }
 
     @Override
+    public boolean exists(String locator) {
+        return exist(locator);
+    }
+
+    @Override
     public boolean exist(String locator, int timeOutMilliSeconds) {
         return Wait.until(timeOutMilliSeconds, 1000, () -> count(locator) > 0);
     }
@@ -310,6 +314,11 @@ public class ChromeCustom extends DevToolsDriver implements IHealingDriver {
         String temp = "(function() { var e = " + DriverOptions.selector(selector) + ";\n" + "return e.outerHTML" + "})();";
         Object value = script(temp);
         return value == null ? null : (String) value;
+    }
+
+    @Override
+    public String getOuterHtml(String locator) {
+        return outerHTML(locator);
     }
 
     @AutoDef

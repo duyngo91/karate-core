@@ -2,7 +2,7 @@
 # This file controls the AI-powered healing engine for stable tests.
 
 # Main switch for the self-healing system
-enabled: false
+enabled: true
 
 # Whether to capture the 'Golden State' of successful elements (for RAG/History)
 captureGoldenState: true
@@ -15,6 +15,14 @@ cacheEnabled: true
 
 # RAG (Retrieval-Augmented Generation) based healing
 ragEnabled: true
+
+# AI-Driven Failure Analysis (Diagnostic Report)
+failureIntelligenceEnabled: false
+aiApiKey: "" # Required for real AI analysis
+aiModel: "gpt-4o" # e.g., "gpt-4o", "gemini-1.5-flash"
+
+# Use Vector Database (LangChain4j) for element profile memory
+vectorMemoryEnabled: true
 
 # Semantic strategy mode: 
 # - LEGACY: Previous algorithm

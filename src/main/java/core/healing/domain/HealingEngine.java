@@ -24,10 +24,10 @@ public class HealingEngine {
 
 
 
-    public HealingEngine(List<HealingStrategy> strategies, boolean isParallel) {
+    public HealingEngine(List<HealingStrategy> strategies, boolean isParallel, int maxThreads) {
         this.strategies = strategies;
         this.isParallel = isParallel;
-        this.customPool = isParallel ? new ForkJoinPool(HealingConfig.getInstance().getMaxHealingThreads()) : null;
+        this.customPool = isParallel ? new ForkJoinPool(maxThreads) : null;
     }
 
 

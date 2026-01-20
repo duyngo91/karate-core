@@ -1,4 +1,4 @@
-package core.healing.infrastructure.rag;
+package core.healing.infrastructure.adapter;
 
 import core.healing.application.port.IHealingDriver;
 import core.healing.application.port.GoldenStateStore;

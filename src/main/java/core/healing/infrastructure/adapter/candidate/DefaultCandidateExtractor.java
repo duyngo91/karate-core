@@ -1,4 +1,4 @@
-package core.healing.domain;
+package core.healing.infrastructure.adapter.candidate;
 
 import core.healing.application.port.CandidateExtractor;
 import core.healing.domain.model.ElementNode;

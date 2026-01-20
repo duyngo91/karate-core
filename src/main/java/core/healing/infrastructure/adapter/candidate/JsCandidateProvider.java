@@ -1,4 +1,4 @@
-package core.healing.infrastructure.candidate;
+package core.healing.infrastructure.adapter.candidate;
 
 import core.healing.application.candidate.JsCandidateCollector;
 import core.healing.application.port.CandidateProvider;

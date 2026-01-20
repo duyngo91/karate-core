@@ -1,4 +1,4 @@
-package core.healing.infrastructure.monitor;
+package core.healing.infrastructure.adapter.monitor;
 
 import core.healing.application.port.HealingMonitor;
 import core.healing.domain.model.HealingEvent;

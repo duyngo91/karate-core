@@ -41,6 +41,12 @@ public class HealingConfig {
     @JsonProperty("semanticEnabled")
     public boolean semanticEnabled = false;
 
+    @JsonProperty("failureIntelligenceEnabled")
+    public boolean failureIntelligenceEnabled = true;
+
+    @JsonProperty("vectorMemoryEnabled")
+    public boolean vectorMemoryEnabled = false;
+
     @JsonProperty("semanticMode")
     public String semanticMode = "HYBRID"; // Options: "LEGACY", "HYBRID"
 
@@ -52,6 +58,12 @@ public class HealingConfig {
 
     @JsonProperty("maxHealingThreads")
     public int maxHealingThreads = 4;
+
+    @JsonProperty("aiApiKey")
+    public String aiApiKey = "";
+
+    @JsonProperty("aiModel")
+    public String aiModel = "gpt-4o"; // Default model
 
     @JsonProperty("locatorPath")
     public String locatorPath = "src/test/java/web/locators";
@@ -91,6 +103,16 @@ public class HealingConfig {
         return prop != null ? "true".equalsIgnoreCase(prop) : semanticEnabled;
     }
 
+    public boolean isFailureIntelligenceEnabled() {
+        String prop = System.getProperty("healing.intelligence");
+        return prop != null ? "true".equalsIgnoreCase(prop) : failureIntelligenceEnabled;
+    }
+
+    public boolean isVectorMemoryEnabled() {
+        String prop = System.getProperty("healing.vector.memory");
+        return prop != null ? "true".equalsIgnoreCase(prop) : vectorMemoryEnabled;
+    }
+
     public String getHealingMode() {
         String prop = System.getProperty("healing.mode");
         return prop != null ? prop.toUpperCase() : (healingMode != null ? healingMode.toUpperCase() : "SAFE");
@@ -104,6 +126,16 @@ public class HealingConfig {
     public int getMaxHealingThreads() {
         String prop = System.getProperty("healing.max.threads");
         return prop != null ? Integer.parseInt(prop) : maxHealingThreads;
+    }
+
+    public String getAiApiKey() {
+        String prop = System.getProperty("healing.ai.api.key");
+        return prop != null ? prop : aiApiKey;
+    }
+
+    public String getAiModel() {
+        String prop = System.getProperty("healing.ai.model");
+        return prop != null ? prop : aiModel;
     }
 
     public String getLocatorPath() {

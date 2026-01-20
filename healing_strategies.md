@@ -57,4 +57,116 @@ Bạn có thể điều chỉnh chế độ hoạt động trong `healing-config
 Bạn cũng có thể thay đổi nhanh qua command line: `-Dhealing.mode=RECKLESS`.
 
 ---
-*Tài liệu này được cập nhật để phản ánh trạng thái tối ưu nhất của Healing Engine hiện tại.*
+
+## 🔄 5. Luồng xử lý (Healing Workflow)
+
+Dưới đây là sơ đồ trình tự (Sequence Diagram) mô tả cách hệ thống tự chữa lỗi khi một bước kiểm thử thất bại.
+
+```mermaid
+sequenceDiagram
+    participant U as "User/Test"
+    participant D as "SelfHealingDriver"
+    participant O as "HealingOrchestrator"
+    participant S as "HealingStore (Cache)"
+    participant E as "HealingEngine"
+    participant AI as "FailureAnalyzer"
+
+    U->>D: "execute action(locator)"
+    alt Locator Works
+        D->>U: Success
+    else Locator Fails
+        D->>O: "heal(locator)"
+        O->>S: "tryFastHeal (Check Cache/GoldenState)"
+        alt Fast Heal Success
+            S-->>O: Healed Locator
+        else Fast Heal Fails
+            O->>E: "deepHeal (Engine Analysis)"
+            E->>E: "Scoring Candidates (9 Strategies)"
+            E-->>O: Best Candidate
+        end
+        
+        alt Healing Success
+            O->>S: "Persist Success (Cache/DB/Vector)"
+            O-->>D: Healed Locator
+            D->>U: "Retry Action and Continue"
+        else Healing Fails
+            O->>AI: "analyze(locator, exception)"
+            AI-->>O: AI Diagnostic Report
+            O-->>D: "Throw Exception + AI Info"
+            D->>U: "Fail with Intelligence Report"
+        end
+    end
+```
+
+---
+
+## 🏗️ 6. Sơ đồ lớp (Class Execution Flow)
+
+Kiến trúc phân tầng đảm bảo tính tách biệt giữa việc điều phối, thực thi thuật toán và lưu trữ.
+
+```mermaid
+graph TD
+    subgraph "Application Layer"
+        HB[HealingBootstrap] -->|Initializes| SHD[SelfHealingDriver]
+        SHD -->|Uses| ORC[HealingOrchestrator]
+    end
+
+    subgraph "Execution Layer (The Brain)"
+        ORC -->|Manages| ENG[HealingEngine]
+        ENG -->|Calls| REG[StrategyRegistry]
+        REG -->|Executes| STR[HealingStrategies]
+        STR -.->|9 Types| STR
+    end
+
+    subgraph "Memory & Intelligence Layer"
+        ORC -->|Query/Save| STO[HealingStore - Cache]
+        ORC -->|Query/Save| GSS[GoldenStateStore - JSON]
+        ORC -->|Semantic Search| VEC[VectorStoreAdapter - AI Memory]
+        ORC -->|Diagnose| FAN[FailureAnalyzer - Real AI]
+    end
+
+    subgraph "Infrastructure Layer"
+        STR -->|Capture| EXT[CandidateExtractor]
+        ORC -->|Scan DOM| PRO[CandidateProvider]
+        FAN -->|Request| AIP[AIProvider - OpenAI/Gemini]
+    end
+
+    style ENG fill:#f9f,stroke:#333,stroke-width:2px
+    style ORC fill:#bbf,stroke:#333,stroke-width:2px
+    style VEC fill:#dfd,stroke:#333,stroke-width:2px
+    style FAN fill:#ffd,stroke:#333,stroke-width:2px
+```
+
+---
+
+## 🛠️ 6. Luồng khởi tạo & Tương tác (Interaction Flow)
+
+Sơ đồ trình tự dưới đây mô tả chi tiết cách các thành phần trong hệ thống được khởi tạo và tương tác với nhau trong giai đoạn khởi động (Bootstrap).
+
+```mermaid
+sequenceDiagram
+    participant HB as HealingBootstrap
+    participant HR as HealingRuntime
+    participant MS as ElementMigrationService
+    participant ORC as HealingOrchestrator
+    participant VS as LangChainVectorStore
+
+    HB->>HR: start()
+    Note over HR: Singleton Initialization
+    HR->>VS: new()
+    Note right of VS: Init Embedding Model & Store
+    
+    HB->>HR: vectorStore()
+    HR-->>HB: return VectorStoreAdapter
+    
+    HB->>MS: migrate(json)
+    MS->>VS: add(element_profiles)
+    Note over VS: Upsert elements to Vector DB
+    
+    HB->>ORC: new(..., vectorStore)
+    Note over ORC: orchestrator.vectorStore = VS
+```
+
+---
+* Tài liệu này được cập nhật để phản ánh trạng thái tối ưu nhất của Healing Engine hiện tại.*
+* Cài thêm plugin Mermaid để hiển thị sơ đồ đúng cách trong trình đọc Markdown hỗ trợ.

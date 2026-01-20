@@ -4,6 +4,7 @@ import core.healing.domain.model.ElementNode;
 import core.healing.application.port.GoldenStateStore;
 import core.healing.domain.model.ElementMetadata;
 import core.healing.infrastructure.embedding.EmbeddingService;
+import core.healing.application.port.VectorStoreAdapter;
 /**
  * Strategy 8: RAG Healing (Vector Similarity)
  * Uses vector embeddings to match elements based on semantic similarity.
@@ -12,11 +13,14 @@ public class RagHealingStrategy implements HealingStrategy {
 
     private final GoldenStateStore goldenStateStore;
     private final EmbeddingService embeddingService;
+    private final VectorStoreAdapter vectorStore;
 
     public RagHealingStrategy(GoldenStateStore goldenStateStore,
-                              EmbeddingService embeddingService) {
+                              EmbeddingService embeddingService,
+                              VectorStoreAdapter vectorStore) {
         this.goldenStateStore = goldenStateStore;
         this.embeddingService = embeddingService;
+        this.vectorStore = vectorStore;
     }
 
     private String resolveKey(ElementNode node) {
