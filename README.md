@@ -29,10 +29,22 @@ After each test execution, a detailed dashboard is generated to provide visibili
 
 ![Healing Report](img_rp.png)
 
+- For details: [Healing Strategies Deep Dive](healing_strategies.md)
+
 ### 3. Advanced Platform Utilities
 - **Flexible Waiting**: Custom wait mechanisms for attributes, text, and element existence.
 - **Complex Element Handling**: Specialized services for Tables, DropLists, and Shadow Elements.
 - **Network Monitoring**: Capture and analyze XHR/API requests/responses directly through the custom driver.
+
+### 4. 🔌 MCP Server (Model Context Protocol)
+The framework functions as a fully compliant **MCP Server**, enabling AI Agents (such as Claude Desktop or IDE Assistants) to directly interact with and control your automation infrastructure.
+
+**Key Capabilities:**
+- **Direct Control**: AI agents can launch browsers, navigate URLs, fill forms, and interact with mobile apps.
+- **Smart Recording**: Agents can record their actions and generate Karate scripts automatically.
+- **Tools Included**: A comprehensive suite of tools for Web, Mobile, and System interactions.
+
+👉 For deep integration details, see: [MCP Documentation](src/main/java/core/mcp/MCP_DOCUMENTATION.md)
 
 ## 📁 Project Structure
 
@@ -65,12 +77,6 @@ strategies:
   - RagHealingStrategy
   - StructuralStrategy
 ```
-
-## 📊 Documentation
-- [MCP](src/main/java/core/mcp/MCP_DOCUMENTATION.md)
-- [Healing Strategies Deep Dive](healing_strategies.md)
-
----
-
+## 📞 Contact & Support
 © 2025 Core Platform. All rights reserved.  
 📧 Email: ngovanduy1991@gmail.com

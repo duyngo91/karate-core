@@ -12,7 +12,6 @@ import java.util.Map;
 
 public class AndroidTest {
     public static void main(String[] args) {
-        //        "webDriverUrl": "https://127.0.0.1:4723/wd/hub", appium 1
         String capabilities =
                 """
                 {
